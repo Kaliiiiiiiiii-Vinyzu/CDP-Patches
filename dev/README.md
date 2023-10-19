@@ -10,6 +10,8 @@ if (is_bot && 1 >= outerHeight - innerHeight){ // fullscreen
 }
 ```
 
+also, cdp can't dispatch `CoalescedEvent`'s ([demo](https://omwnk.codesandbox.io/))
+
 As we don't want to patch Chromium itsself, let's just dispatch this event at OS-level
 
 ### the patch
