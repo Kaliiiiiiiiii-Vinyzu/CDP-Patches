@@ -2,7 +2,7 @@
 
 ### the leak
 for a interaction event `e`, the page cordinates won't ever equal the screen cordinates, unless Chrome is in fullscreen.
-Howerver, all `CDP` input commands just set it the same by default (see [crbug#1477537](https://bugs.chromium.org/p/chromium/issues/detail?id=1477537)
+Howerver, all `CDP` input commands just set it the same by default (see [crbug#1477537](https://bugs.chromium.org/p/chromium/issues/detail?id=1477537))
 ```js
 var is_bot = (e.pageY == e.screenY && e.pageX == e.screenX)
 if (is_bot && 1 >= outerHeight - innerHeight){ // fullscreen
