@@ -26,6 +26,9 @@ see [example-script](https://stackoverflow.com/a/47424799/20443541)
 - [ ] sample script single mousedown
     - [ ] Windows
     - [ ] Linux
+- [ ] functions for finding tab windows by PID
+    - [ ] Windows
+    - [ ] Linux
 - [ ] create async low-level classes for specific windows
     - [ ] Windows
         - [ ] `BasePointer`
