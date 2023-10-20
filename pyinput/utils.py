@@ -14,7 +14,7 @@ def launch_chrome(args: typing.List[str] = None, binary_path:str=None):
                 '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding',
                 '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 
                 '--disable-background-networking','--no-pings', '--no-pings', '--disable-infobars', 
-                '--disable-breakpad', "--no-default-browser-check", '--homepage=about:blank']
+                '--disable-breakpad', "--no-default-browser-check", '--homepage=about:blank', '--force-renderer-accessibility']
         if IS_POSIX:
             args.append("--password-store=basic")
         args.append('about:blank')
