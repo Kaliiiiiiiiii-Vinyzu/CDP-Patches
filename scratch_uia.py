@@ -6,8 +6,8 @@ import time
 
 def click(hwnd:int, x:float, y:float):
     lParam = win32api.MAKELONG(x, y)
-    win32gui.SendMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
-    win32gui.SendMessage(hwnd, win32con.WM_LBUTTONUP, None, lParam)
+    win32gui.PostMessage(hwnd, win32con.WM_LBUTTONDOWN, win32con.MK_LBUTTON, lParam)
+    win32gui.PostMessage(hwnd, win32con.WM_LBUTTONUP, None, lParam)
 
 def get_active_document(window):
     for child in window.iter_children():
@@ -26,6 +26,7 @@ wins =  app.windows(title_re=r".* - Google Chrome*")
 
 win = wins[0]
 doc = get_active_document(win)
+
 click(doc.handle, 100, 100)
 
 start = time.monotonic()
