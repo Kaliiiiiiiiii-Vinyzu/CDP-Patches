@@ -2,56 +2,67 @@ import typing
 import os
 import subprocess
 import sys
-from contextlib import closing
+from pywinauto import application
+import signal
 
 IS_POSIX = sys.platform.startswith(("darwin", "cygwin", "linux", "linux2"))
 
-def launch_chrome(args: typing.List[str] = None, binary_path:str=None):
+
+def launch_chrome(args: typing.List[str] = None, binary_path: str = None, start_url: str = 'about:blank'):
     if binary_path is None:
         binary_path = find_chrome_executable()
     if args is None:
-        args = ["--no-first-run", '--disable-component-update', '--no-service-autorun', 
+        args = ["--no-first-run", '--disable-component-update', '--no-service-autorun',
                 '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding',
-                '--disable-background-timer-throttling', '--disable-renderer-backgrounding', 
-                '--disable-background-networking','--no-pings', '--no-pings', '--disable-infobars', 
-                '--disable-breakpad', "--no-default-browser-check", '--homepage=about:blank']
+                '--disable-background-timer-throttling', '--disable-renderer-backgrounding',
+                '--disable-background-networking', '--no-pings', '--no-pings', '--disable-infobars',
+                '--disable-breakpad', "--no-default-browser-check", '--homepage=about:blank',
+                '--force-renderer-accessibility']
         if IS_POSIX:
             args.append("--password-store=basic")
-        args.append('about:blank')
+        args.append(start_url)
 
     process = subprocess.Popen(
-                    [binary_path, *args],
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=sys.stderr,
-                    close_fds=True,
-                    preexec_fn=os.setsid if os.name == 'posix' else None,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0,
-                    shell=False,
-                    text=True)
+        [binary_path, *args],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=sys.stderr,
+        close_fds=True,
+        preexec_fn=os.setsid if os.name == 'posix' else None,
+        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == 'nt' else 0,
+        shell=False,
+        text=True)
     return process
 
-def find_chrome_window(pid:int):
-    raise NotImplementedError()
 
-def get_tab(chrome_window, index:int):
-    raise NotImplementedError()
+def find_chrome_window(pid: int):
+    app = application.Application(backend="uia")
+    app.connect(process=pid)
+    return app.windows(title_re=r".* - Google Chrome*")
 
-def kill_chrome(process, timeout:float=10):
+
+def get_active_document(window):
+    for child in window.iter_children():
+        if child.element_info.class_name == 'Chrome_RenderWidgetHostHWND':
+            return child
+
+
+def kill_chrome(process, timeout: float = 10):
     if os.name == 'posix':
         os.killpg(os.getpgid(process.pid), signal.SIGTERM)
     else:
         process.terminate()
     try:
-         process.wait(timeout)
+        process.wait(timeout)
     except subprocess.TimeoutExpired:
-          if os.name == 'posix':
-              os.killpg(os.getpgid(process.pid), signal.SIGKILL)
-          else:
-               process.kill()
+        if os.name == 'posix':
+            os.killpg(os.getpgid(process.pid), signal.SIGKILL)
+        else:
+            process.kill()
+
 
 def find_chrome_executable() -> str:
-     # from https://github.com/ultrafunkamsterdam/undetected-chromedriver/blob/1c704a71cf4f29181a59ecf19ddff32f1b4fbfc0/undetected_chromedriver/__init__.py#L844
+    # from https://github.com/ultrafunkamsterdam/undetected-chromedriver/blob/1c704a71cf4f29181a59ecf19ddff32f1b4fbfc0/undetected_chromedriver/__init__.py#L844
     # edited by kaliiiiiiiiii | Aurin Aegerter
     """
     Finds the chrome, chrome beta, chrome canary, chromium executable
