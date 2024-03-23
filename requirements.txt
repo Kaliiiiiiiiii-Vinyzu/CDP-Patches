@@ -1,2 +1,5 @@
-pypiwin32
-pywinauto
+pywinauto==0.6.8
+numpy==1.26.4
+playwright==1.42.0
+selenium==4.18.1
+selenium_driverless==1.8.0.2
