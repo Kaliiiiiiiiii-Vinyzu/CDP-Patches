@@ -53,6 +53,10 @@ class AsyncInput:
 
         self._base._offset_toolbar_height()
 
+    @property
+    def base(self):
+        return self._base
+
     async def _wait_for_window(self) -> None:
         max_wait = time.time() + self.window_timeout
         while time.time() < max_wait:

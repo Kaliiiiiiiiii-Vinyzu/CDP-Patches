@@ -1,10 +1,11 @@
 # This requirements are for development and testing only, not for production.
 flake8==7.0.0
-tox==4.14.2
 pytest==8.1.1
 pytest_asyncio==0.23.6
 mypy==1.9.0
 types-setuptools==69.2.0.20240317
+black==24.3.0
+isort==5.13.2
 pywinauto==0.6.8
 numpy==1.26.4
 playwright==1.42.0
