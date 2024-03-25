@@ -6,7 +6,6 @@ import random
 import re
 import threading
 import time
-import typing
 from typing import Any, Generator, Literal, Optional, Union
 
 from pywinauto.base_wrapper import ElementNotEnabled, ElementNotVisible
