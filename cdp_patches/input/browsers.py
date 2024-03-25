@@ -1,5 +1,5 @@
 from contextlib import suppress
-from datetime import datetime
+import time
 from typing import Dict, List, TypedDict, Union
 
 from playwright.async_api import Browser as AsyncBrowser
@@ -147,8 +147,8 @@ def get_sync_playwright_scale_factor(browser: Union[SyncContext, SyncBrowser]) -
         close_page = True
     cdp_session = context.new_cdp_session(page)
 
-    time1 = datetime.now()
-    while (datetime.now() - time1).seconds <= 10:
+    time1 = time.perf_counter()
+    while (time.perf_counter() - time1) <= 10:
         try:
             page_frame_tree = cdp_session.send("Page.getFrameTree")
             page_id = page_frame_tree["frameTree"]["frame"]["id"]
@@ -164,8 +164,8 @@ def get_sync_playwright_scale_factor(browser: Union[SyncContext, SyncBrowser]) -
     else:
         raise TimeoutError("Page.createIsolatedWorld did not initialize properly within 30 seconds.")
 
-    time2 = datetime.now()
-    while (datetime.now() - time2).seconds <= 10:
+    time2 = time.perf_counter()
+    while (time.perf_counter() - time2) <= 10:
         try:
             scale_factor_eval = cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio", "contextId": isolated_exec_id})
             scale_factor: int = scale_factor_eval["result"]["value"]
@@ -209,8 +209,8 @@ async def get_async_playwright_scale_factor(browser: Union[AsyncContext, AsyncBr
         close_page = True
     cdp_session = await context.new_cdp_session(page)
 
-    time1 = datetime.now()
-    while (datetime.now() - time1).seconds <= 10:
+    time1 = time.perf_counter()
+    while (time.perf_counter() - time1) <= 10:
         try:
             page_frame_tree = await cdp_session.send("Page.getFrameTree")
             page_id = page_frame_tree["frameTree"]["frame"]["id"]
@@ -226,8 +226,8 @@ async def get_async_playwright_scale_factor(browser: Union[AsyncContext, AsyncBr
     else:
         raise TimeoutError("Page.createIsolatedWorld did not initialize properly within 30 seconds.")
 
-    time2 = datetime.now()
-    while (datetime.now() - time2).seconds <= 10:
+    time2 = time.perf_counter()
+    while (time.perf_counter() - time2) <= 10:
         try:
             scale_factor_eval = await cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio", "contextId": isolated_exec_id})
             scale_factor: int = scale_factor_eval["result"]["value"]

@@ -63,7 +63,7 @@ class AsyncInput:
         return self._scale_factor
 
     @scale_factor.setter
-    def scale_factor(self, scale_value) -> None:
+    def scale_factor(self, scale_value: float) -> None:
         self._scale_factor = scale_value
         if self._base:
             self._base.scale_factor = scale_value
