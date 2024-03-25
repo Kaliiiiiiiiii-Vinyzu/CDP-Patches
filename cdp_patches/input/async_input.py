@@ -48,10 +48,15 @@ class AsyncInput:
         if os.name == "nt":
             self._base = WindowsBase(self.pid, self.scale_factor)
         else:
+            # mind to change typing of `self.base` property when implementing
             raise NotImplementedError(f"pyinput not implemented yet for {os.name}")
         await self._wait_for_window()
 
         self._base._offset_toolbar_height()
+
+    @property
+    def base(self) -> WindowsBase:
+        return self._base
 
     async def _wait_for_window(self) -> None:
         max_wait = time.time() + self.window_timeout
