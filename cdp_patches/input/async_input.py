@@ -88,34 +88,31 @@ class AsyncInput:
 
         await asyncio.sleep(timeout)
 
-    async def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True) -> None:
+    async def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
-        await self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour)
+        await self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout)
         if self.emulate_behaviour and emulate_behaviour:
-            await self._sleep_timeout()
+            await self._sleep_timeout(timeout=timeout)
         await self.up(button=button, x=x, y=y)
         self.last_x, self.last_y = x, y
 
-    async def double_click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True) -> None:
+    async def double_click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
-        emulate_behaviour = self.emulate_behaviour
 
-        await self.click(button=button, x=x, y=y)
-        if self.emulate_behaviour:
+        await self.click(button=button, x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour)
+        if self.emulate_behaviour and emulate_behaviour:
             # self._sleep_timeout(random.uniform(0.14, 0.21))
-            await self._sleep_timeout()
-        self.emulate_behaviour = False
-        await self.click(button=button, x=x, y=y)
+            await self._sleep_timeout(timeout=timeout)
+        await self.click(button=button, x=x, y=y, emulate_behaviour=False, timeout=timeout)
 
-        self.emulate_behaviour = emulate_behaviour
         self.last_x, self.last_y = x, y
 
-    async def down(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True) -> None:
+    async def down(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
         if self.emulate_behaviour and emulate_behaviour:
-            await self.move(x=x, y=y)
+            await self.move(x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour)
         self._base.down(button=button, x=x, y=y)
         self.last_x, self.last_y = x, y
 
@@ -125,7 +122,7 @@ class AsyncInput:
         self._base.up(button=button, x=x, y=y)
         self.last_x, self.last_y = x, y
 
-    async def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True) -> None:
+    async def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
         if self.emulate_behaviour and emulate_behaviour:
@@ -135,7 +132,7 @@ class AsyncInput:
             for human_x, human_y in humanized_points.points:
                 # Threaded Movement as Calls to API are too slow
                 threading.Thread(target=self._base.move, args=(int(human_x), int(human_y))).start()
-                await self._sleep_timeout()
+                await self._sleep_timeout(timeout=timeout)
 
         else:
             self._base.move(x=x, y=y)

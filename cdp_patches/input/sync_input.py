@@ -79,34 +79,31 @@ class SyncInput:
 
         time.sleep(timeout)
 
-    def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float]) -> None:
+    def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
-        self.down(button=button, x=x, y=y)
-        if self.emulate_behaviour:
-            self._sleep_timeout()
+        self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout)
+        if self.emulate_behaviour and emulate_behaviour:
+            self._sleep_timeout(timeout=timeout)
         self.up(button=button, x=x, y=y)
         self.last_x, self.last_y = x, y
 
-    def double_click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float]) -> None:
+    def double_click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
-        emulate_behaviour = self.emulate_behaviour
 
-        self.click(button=button, x=x, y=y)
-        if self.emulate_behaviour:
+        self.click(button=button, x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour)
+        if emulate_behaviour and self.emulate_behaviour:
             # self._sleep_timeout(random.uniform(0.14, 0.21))
-            self._sleep_timeout()
-        self.emulate_behaviour = False
-        self.click(button=button, x=x, y=y)
+            self._sleep_timeout(timeout=timeout)
+        self.click(button=button, x=x, y=y, emulate_behaviour=False, timeout=timeout)
 
-        self.emulate_behaviour = emulate_behaviour
         self.last_x, self.last_y = x, y
 
-    def down(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float]) -> None:
+    def down(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
-        if self.emulate_behaviour:
-            self.move(x=x, y=y)
+        if self.emulate_behaviour and emulate_behaviour:
+            self.move(x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout)
         self._base.down(button=button, x=x, y=y)
         self.last_x, self.last_y = x, y
 
@@ -116,17 +113,17 @@ class SyncInput:
         self._base.up(button=button, x=x, y=y)
         self.last_x, self.last_y = x, y
 
-    def move(self, x: Union[int, float], y: Union[int, float]) -> None:
+    def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
-        if self.emulate_behaviour:
+        if self.emulate_behaviour and emulate_behaviour:
             humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
 
             # Move Mouse to new random locations
             for human_x, human_y in humanized_points.points:
                 # Threaded Movement as Calls to API are too slow
                 threading.Thread(target=self._base.move, args=(int(human_x), int(human_y))).start()
-                self._sleep_timeout()
+                self._sleep_timeout(timeout=timeout)
 
         self._base.move(x=x, y=y)
         self.last_x, self.last_y = x, y
