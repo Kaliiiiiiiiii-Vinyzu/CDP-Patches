@@ -21,7 +21,7 @@ class AsyncInput:
     pid: Optional[int]
     _base: Union[WindowsBase]
     window_timeout: int = 30
-    scale_factor: float = 1.0
+    _scale_factor: float = 1.0
     timeout: float = 0.01
     typing_speed: int = 50
     last_x: int = 0
@@ -31,7 +31,7 @@ class AsyncInput:
     def __init__(self, pid: Optional[int] = None, browser: Optional[async_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True) -> None:
         self.pid = pid
         self.browser = browser
-        self.scale_factor = scale_factor or self.scale_factor
+        self._scale_factor = scale_factor or self._scale_factor
         self.emulate_behaviour = emulate_behaviour or self.emulate_behaviour
 
     def __await__(self) -> Generator[None, Any, AsyncInput]:
@@ -41,12 +41,12 @@ class AsyncInput:
     async def __ainit__(self) -> None:
         if self.browser:
             self.pid = await get_async_browser_pid(self.browser)
-            self.scale_factor = await get_async_scale_factor(self.browser)
+            self._scale_factor = await get_async_scale_factor(self.browser)
         elif not self.pid:
             raise ValueError("You must provide a pid or a browser")
 
         if os.name == "nt":
-            self._base = WindowsBase(self.pid, self.scale_factor)
+            self._base = WindowsBase(self.pid, self._scale_factor)
         else:
             # mind to change typing of `self.base` property when implementing
             raise NotImplementedError(f"pyinput not implemented yet for {os.name}")
@@ -57,6 +57,16 @@ class AsyncInput:
     @property
     def base(self) -> WindowsBase:
         return self._base
+
+    @property
+    def scale_factor(self) -> float:
+        return self._scale_factor
+
+    @scale_factor.setter
+    def scale_factor(self, scale_value) -> None:
+        self._scale_factor = scale_value
+        if self._base:
+            self._base.scale_factor = scale_value
 
     async def _wait_for_window(self) -> None:
         max_wait = time.time() + self.window_timeout

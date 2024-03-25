@@ -18,7 +18,7 @@ class SyncInput:
     pid: Optional[int]
     _base: Union[WindowsBase]
     window_timeout: int = 30
-    scale_factor: float = 1.0
+    _scale_factor: float = 1.0
     timeout: float = 0.01
     typing_speed: int = 50
     last_x: int = 0
@@ -26,19 +26,19 @@ class SyncInput:
     selective_modifiers_regex = re.compile(r"{[^{}]*}|.")
 
     def __init__(self, pid: Optional[int] = None, browser: Optional[sync_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True) -> None:
-        self.scale_factor = scale_factor or self.scale_factor
+        self._scale_factor = scale_factor or self._scale_factor
         self.emulate_behaviour = emulate_behaviour or self.emulate_behaviour
 
         if browser:
             self.pid = get_sync_browser_pid(browser)
-            self.scale_factor = get_sync_scale_factor(browser)
+            self._scale_factor = get_sync_scale_factor(browser)
         elif pid:
             self.pid = pid
         else:
             raise ValueError("You must provide a pid or a browser")
 
         if os.name == "nt":
-            self._base = WindowsBase(self.pid, self.scale_factor)
+            self._base = WindowsBase(self.pid, self._scale_factor)
         else:
             raise NotImplementedError(f"pyinput not implemented yet for {os.name}")
         self._wait_for_window()
@@ -48,6 +48,16 @@ class SyncInput:
     @property
     def base(self):
         return self._base
+
+    @property
+    def scale_factor(self) -> float:
+        return self._scale_factor
+
+    @scale_factor.setter
+    def scale_factor(self, scale_value) -> None:
+        self._scale_factor = scale_value
+        if self._base:
+            self._base.scale_factor = scale_value
 
     def _wait_for_window(self) -> None:
         max_wait = time.time() + self.window_timeout
