@@ -6,6 +6,7 @@ import random
 import re
 import threading
 import time
+import typing
 from typing import Any, Generator, Literal, Optional, Union
 
 from pywinauto.base_wrapper import ElementNotEnabled, ElementNotVisible
@@ -48,13 +49,14 @@ class AsyncInput:
         if os.name == "nt":
             self._base = WindowsBase(self.pid, self.scale_factor)
         else:
+            # mind to change typing of `self.base` property when implementing
             raise NotImplementedError(f"pyinput not implemented yet for {os.name}")
         await self._wait_for_window()
 
         self._base._offset_toolbar_height()
 
     @property
-    def base(self):
+    def base(self) -> WindowsBase:
         return self._base
 
     async def _wait_for_window(self) -> None:
