@@ -26,7 +26,7 @@ jobs:
       - name: (Linting) Black
         run: black . --check
 
-  Build Linux:
+  Build_Linux:
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -54,7 +54,7 @@ jobs:
       with:
         commands: pytest
 
-  Build Windows:
+  Build_Windows:
     strategy:
       matrix:
         os: [ windows-latest ]
