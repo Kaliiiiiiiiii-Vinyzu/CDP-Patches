@@ -1,7 +1,38 @@
-# CDP-Patches v1.0
-![CDP-Patches CI](https://github.com/Kaliiiiiiiiii-Vinyzu/CDP-Patches/actions/workflows/ci.yml/badge.svg)
-[![](https://img.shields.io/pypi/v/cdp-patches.svg?color=1182C3)](https://pypi.org/project/cdp-patches/)
-[![Downloads](https://static.pepy.tech/badge/cdp-patches)](https://pepy.tech/project/cdp-patches)
+<h1 align="center">
+    CDP-Patches v1.0
+</h1>
+
+
+<p align="center">
+    <a href="https://github.com/Kaliiiiiiiiii-Vinyzu/CDP-Patches/blob/main/LICENSE">
+        <img src="https://img.shields.io/badge/License-GNU%20GPL-green">
+    </a>
+    <a href="https://python.org/">
+        <img src="https://img.shields.io/badge/python-3.9&#8208;3.12-blue">
+    </a>
+    <a href="https://pypi.org/project/cdp-patches/">
+        <img alt="PyPI" src="https://img.shields.io/pypi/v/cdp-patches.svg?color=1182C3">
+    </a>
+    <a href="https://pepy.tech/project/cdp-patches">
+        <img alt="PyPI" src="https://static.pepy.tech/badge/cdp-patches">
+    </a>
+    <br>
+    <a href="https://github.com/ambv/black">
+        <img src="https://github.com/Kaliiiiiiiiii-Vinyzu/CDP-Patches/actions/workflows/ci.yml/badge.svg">
+    </a>
+    <a href="http://mypy-lang.org">
+        <img src="http://www.mypy-lang.org/static/mypy_badge.svg">
+    </a>
+    <a href="https://github.com/PyCQA/flake8">
+        <img src="https://img.shields.io/badge/flake8-passing-green.svg">
+    </a>
+    <a href="https://github.com/ambv/black">
+        <img src="https://img.shields.io/badge/code%20style-black-black.svg">
+    </a>
+    <a href="https://github.com/PyCQA/isort">
+        <img src="https://img.shields.io/badge/imports-isort-yellow.svg">
+    </a>
+</p>
 
 ## Install it from PyPI
 
@@ -123,9 +154,3 @@ Read the [CONTRIBUTING.md](https://github.com/Vinyzu/Botright/blob/main/docs/CON
 
 [Vinyzu](https://github.com/Vinyzu/), 
 [Kaliiiiiiiiii](https://github.com/kaliiiiiiiiii/)
-
----
-
-![Version](https://img.shields.io/badge/CDP_Patches-v1.0-blue)
-![License](https://img.shields.io/badge/License-GNU%20GPL-green)
-![Python](https://img.shields.io/badge/Python-v3.x-lightgrey)
