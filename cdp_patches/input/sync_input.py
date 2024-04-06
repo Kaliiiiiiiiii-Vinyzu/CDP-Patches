@@ -1,13 +1,27 @@
-import os
 import random
 import re
-import threading
 import time
-from typing import Literal, Optional, Union
+import warnings
+from typing import Literal, Optional, TypeAlias, Union
 
-from pywinauto.base_wrapper import ElementNotEnabled, ElementNotVisible
+from cdp_patches import is_windows
 
-from cdp_patches.input.os_base.windows import WindowsBase
+if is_windows:
+    from pywinauto.base_wrapper import ElementNotEnabled, ElementNotVisible
+
+    from cdp_patches.input.os_base.windows import WindowsBase  # type: ignore[assignment]
+
+    LinuxBase: TypeAlias = WindowsBase  # type: ignore[no-redef]
+    InputBase = WindowsBase  # type: ignore
+    WindowErrors = (AssertionError, ValueError, ElementNotVisible, ElementNotEnabled)  # type: ignore[assignment]
+else:
+    from xdo.xdo import XdoException
+
+    from cdp_patches.input.os_base.linux import LinuxBase  # type: ignore[assignment]
+
+    WindowsBase: TypeAlias = LinuxBase  # type: ignore[no-redef]
+    InputBase = LinuxBase  # type: ignore
+    WindowErrors = (AssertionError, ValueError, XdoException)  # type: ignore[assignment]
 
 from .browsers import get_sync_browser_pid, get_sync_scale_factor, sync_browsers
 from .mouse_trajectory import HumanizeMouseTrajectory
@@ -16,10 +30,11 @@ from .mouse_trajectory import HumanizeMouseTrajectory
 class SyncInput:
     emulate_behaviour: Optional[bool] = True
     pid: Optional[int]
-    _base: Union[WindowsBase]
+    # _base: Union[WindowsBase, LinuxBase]
+    _base: InputBase
     window_timeout: int = 30
     _scale_factor: float = 1.0
-    timeout: float = 0.01
+    sleep_timeout: float = 0.01
     typing_speed: int = 50
     last_x: int = 0
     last_y: int = 0
@@ -31,22 +46,17 @@ class SyncInput:
 
         if browser:
             self.pid = get_sync_browser_pid(browser)
-            self._scale_factor = get_sync_scale_factor(browser)
+            self._scale_factor = float(get_sync_scale_factor(browser))
         elif pid:
             self.pid = pid
         else:
             raise ValueError("You must provide a pid or a browser")
 
-        if os.name == "nt":
-            self._base = WindowsBase(self.pid, self._scale_factor)
-        else:
-            raise NotImplementedError(f"pyinput not implemented yet for {os.name}")
+        self._base = InputBase(self.pid, self._scale_factor)  # type: ignore
         self._wait_for_window()
 
-        self._base._offset_toolbar_height()
-
     @property
-    def base(self):
+    def base(self) -> Union[WindowsBase, LinuxBase]:
         return self._base
 
     @property
@@ -65,21 +75,25 @@ class SyncInput:
             try:
                 if self._base.get_window():
                     return
-            except (AssertionError, ElementNotVisible, ElementNotEnabled):
+            except WindowErrors:
                 pass
             self._sleep_timeout(0.1)
 
         raise TimeoutError(f"Chrome Window (PID: {self.pid}) not found in {self.window_timeout} seconds.")
 
     def _sleep_timeout(self, timeout: Optional[float] = None) -> None:
-        timeout = timeout or self.timeout
-        if not random.randint(0, 10):
-            timeout_random = self.timeout / 10
-            timeout = timeout or random.uniform(self.timeout, self.timeout + timeout_random)
+        timeout = timeout or self.sleep_timeout
+        # if not random.randint(0, 10):
+        # timeout_random = timeout / 10
+        # timeout = random.uniform(timeout - timeout_random, timeout + timeout_random)
 
         time.sleep(timeout)
+        # Perfect Precise Sleep
+        # start = time.perf_counter()
+        # while time.perf_counter() - start < timeout:
+        #     pass
 
-    def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
+    def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = 0.07) -> None:
         x, y = int(x), int(y)
 
         self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout)
@@ -120,49 +134,25 @@ class SyncInput:
             humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
 
             # Move Mouse to new random locations
-            for human_x, human_y in humanized_points.points:
-                # Threaded Movement as Calls to API are too slow
-                threading.Thread(target=self._base.move, args=(int(human_x), int(human_y))).start()
+            for i, (human_x, human_y) in enumerate(humanized_points.points):
+                self._base.move(x=int(human_x), y=int(human_y))
                 self._sleep_timeout(timeout=timeout)
 
         self._base.move(x=x, y=y)
         self.last_x, self.last_y = x, y
 
     def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
+        warnings.warn("Scrolling using CDP-Patches is discouraged as Scroll Inputs dont leak the CDP Domain.", UserWarning)
         self._base.scroll(direction=direction, amount=amount)
 
-    def type(self, text: str, fill: Optional[bool] = False) -> None:
+    def type(self, text: str, fill: Optional[bool] = False, timeout: Optional[float] = None) -> None:
         if self.emulate_behaviour and not fill:
             for i, char in enumerate(self.selective_modifiers_regex.findall(text)):
                 # If new word is started wait some more time
                 if i != 0 and text[i - 1] == " ":
-                    self._sleep_timeout()
+                    self._sleep_timeout(timeout=timeout)
 
                 self._base.send_keystrokes(char)
                 self._sleep_timeout((random.random() * 10) / self.typing_speed)
         else:
             self._base.send_keystrokes(text)
-
-    # async def press_keys(self, text: str, fill: Optional[bool] = False) -> None:
-    #     if self.emulate_behaviour and not fill:
-    #         for i, char in enumerate(self.selective_modifiers_regex.findall(text)):
-    #             # If new word is started wait some more time
-    #             if i != 0 and text[i - 1] == " ":
-    #                 await self._sleep_timeout()
-    #
-    #             self._base.send_keystrokes(char, down=True)
-    #             await self._sleep_timeout((random.random() * 10) / self.typing_speed)
-    #     else:
-    #         self._base.send_keystrokes(text)
-    #
-    # async def release_keys(self, text: str, fill: Optional[bool] = False) -> None:
-    #     if self.emulate_behaviour and not fill:
-    #         for i, char in enumerate(self.selective_modifiers_regex.findall(text)):
-    #             # If new word is started wait some more time
-    #             if i != 0 and text[i - 1] == " ":
-    #                 await self._sleep_timeout()
-    #
-    #             self._base.send_keystrokes(char, up=True)
-    #             await self._sleep_timeout((random.random() * 10) / self.typing_speed)
-    #     else:
-    #         self._base.send_keystrokes(text)

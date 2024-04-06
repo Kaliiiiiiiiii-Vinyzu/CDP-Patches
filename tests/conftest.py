@@ -1,4 +1,4 @@
-from typing import AsyncGenerator, Generator
+from typing import AsyncGenerator, Generator, List
 
 import pytest
 import pytest_asyncio
@@ -13,7 +13,7 @@ from cdp_patches.input import AsyncInput, SyncInput
 
 from .server import Server, test_server
 
-flags = [
+flags: List[str] = [
     "--incognito",
     "--accept-lang=en-US",
     "--lang=en-US",
@@ -115,7 +115,6 @@ async def async_page() -> AsyncGenerator[AsyncPage, None]:
         context = await browser.new_context(locale="en-US")
         page = await context.new_page()
         page.async_input = await AsyncInput(browser=context)  # type: ignore[attr-defined]
-
         yield page
 
 

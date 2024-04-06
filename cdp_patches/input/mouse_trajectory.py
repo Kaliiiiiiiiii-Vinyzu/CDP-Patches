@@ -35,7 +35,7 @@ class HumanizeMouseTrajectory:
         points = self.generate_points(internalKnots)
         points = self.distort_points(points, 2, 2, 0.6)
 
-        target_points = int(points_distance // 5) if int(points_distance // 5) > 2 else 2
+        target_points = int(points_distance // 4) if int(points_distance // 4) > 2 else 2
         points = self.tween_points(points, target_points)
         return points
 

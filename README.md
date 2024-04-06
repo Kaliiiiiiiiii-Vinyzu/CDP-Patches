@@ -8,11 +8,22 @@
 ```bash
 pip install cdp-patches
 ```
+<details>
+    <summary>Or for Full Linting</summary>
+
+#### (Includes: playwright, botright, selenium, selenium_driverless)
+```bash
+pip install cdp-patches[automation_linting]
+```
+</details>
 
 ---
 
-# Leaks
-### Concept: Input Domain Leaks
+# Leak Patches
+<details>
+    <summary>Input Package</summary>
+
+###  Concept: Input Domain Leaks
 Bypass CDP Leaks in [Input](https://chromedevtools.github.io/devtools-protocol/tot/Input/) domains
 
 For an interaction event `e`, the page coordinates won't ever equal the screen coordinates, unless Chrome is in fullscreen.
@@ -75,11 +86,21 @@ if __name__ == '__main__':
 ```
 
 > [!IMPORTANT]  
+> By the nature of OS-level events (which can only impact actionable windows), this package can only be used with headful browsers.
+
+> [!IMPORTANT]  
 > Because Chrome does not recognize Input Events to specific tabs, these methods can only be used on the active tab. 
 > Chrome Tabs do have their own process with a process id (pid), but these can not be controlled using Input Events as they´re just engines.
 
+### TODO
+- [ ] Improve mouse movement timings.
+- [ ] Implement extensive testing.
 
-Read the [Documentation](https://github.com/Kaliiiiiiiiii-Vinyzu/CDP-Patches/blob/main/docs/index.rst)
+#### Owner: [Vinyzu](https://github.com/Vinyzu/)
+#### Co-Maintainer: [Kaliiiiiiiiii](https://github.com/kaliiiiiiiiii/)
+</details>
+
+Read the [Documentation](https://vinyzu.gitbook.io/cdp-patches-documentation)
 
 ---
 

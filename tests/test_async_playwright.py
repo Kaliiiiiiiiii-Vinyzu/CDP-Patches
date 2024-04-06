@@ -72,40 +72,6 @@ async def test_double_click_the_button(async_page: Page, server: Server) -> None
 
 @pytest.mark.asyncio
 async def test_locators_hover(async_page: Page, server: Server) -> None:
-    # x = """window.addEventListener("DOMContentLoaded",()=>{function highest_z_idx(){const allElements=document.querySelectorAll("*");let highestZIndex=0;allElements.forEach((element)=>{const
-    #     zIndex=parseInt(getComputedStyle(element).zIndex,10);if(zIndex&&zIndex>highestZIndex){highestZIndex=zIndex}});return highestZIndex}function round_2(num){return Math.round((
-    #     num+Number.EPSILON)*100)/100}z_idx=highest_z_idx();const canvas=document.createElement("canvas");canvas.style.position="fixed";canvas.style.top="0";canvas.style.left="0";canvas.style.zIndex=
-    #     String(z_idx+1);canvas.width=window.innerWidth;canvas.height=window.innerHeight;canvas.style.pointerEvents="none";const clearButton=document.createElement("button");clearButton.textContent=
-    #     "Clear";clearButton.style.position="fixed";clearButton.style.top="10px";clearButton.style.left="10px";clearButton.id="clear";clearButton.style.zIndex=String(z_idx+2);clearButton.style.opacity=
-    #     "0.7";const tab=document.createElement("div");tab.style.position="fixed";tab.style.top="10px";tab.style.right="10px";tab.style.padding="5px 10px";tab.style.borderRadius="5px";
-    #     tab.style.pointerEvents="none";tab.style.fontFamily="Arial, sans-serif";tab.style.fontSize="14px";tab.style.fontWeight="bold";tab.style.zIndex=String(z_idx+3);tab.style.opacity="0.8";
-    #     tab.textContent="average ClickDeltaTime: 0.00ms +/-0.00,Average Frequency: 0.00 Hz, count:0, x:0, y:0";const graphCanvas=document.createElement("canvas");graphCanvas.width=window.innerWidth;
-    #     graphCanvas.height=200;graphCanvas.style.position="fixed";graphCanvas.style.bottom="0";graphCanvas.style.left="0";graphCanvas.style.zIndex=String(z_idx+4);graphCanvas.style.pointerEvents=
-    #     "None";const ctx=canvas.getContext("2d");let lastEventTime=0;let timeSinceClear=0;let timeDeltaData=[];let mousedownTime=0;let clickdeltaTimes=[];let averageClickDeltaTime=0;
-    #     click_delta_max_diff=0;function plot_point(x,y,color="red",radius="2",opacity=0.5){ctx.fillStyle=color;ctx.globalAlpha=opacity;ctx.beginPath();ctx.arc(x,y,radius,0,Math.PI*2);ctx.fill();
-    #     ctx.globalAlpha=1;}function clear(){ctx.clearRect(0,0,canvas.width,canvas.height);lastEventTime=0;timeSinceClear=0;timeDeltaData=[];let mousedownTime=0;let clickdeltaTimes=[];
-    #     let averageClickDeltaTime=0;click_delta_max_diff=0;tab.textContent="average ClickDeltaTime: 0.00ms +/-0.00, Average Frequency: 0.00 Hz, count:0, x:0, y:0"};function updateCanvasDimensions()
-    #     {canvas.width=window.innerWidth;canvas.height=window.innerHeight;graphCanvas.width=window.innerWidth;drawTimeDeltaGraph()}function drawTimeDeltaGraph(){const graphCtx=
-    #     graphCanvas.getContext("2d");graphCtx.clearRect(0,0,graphCanvas.width,graphCanvas.height);graphCtx.globalAlpha=0.3;graphCtx.fillStyle="white";graphCtx.fillRect(0,0,graphCanvas.width,
-    #     graphCanvas.height);graphCtx.globalAlpha=1;graphCtx.fillStyle="black";if(timeDeltaData.length>graphCanvas.width){timeDeltaData.splice(0,timeDeltaData.length-graphCanvas.width)}
-    #     const maxTimeDelta=Math.max(...timeDeltaData);const scaleFactor=graphCanvas.height/maxTimeDelta;const gridSpacing=20;graphCtx.strokeStyle="black";graphCtx.beginPath();for(let y=0;y<=
-    #     graphCanvas.height;y+=gridSpacing){graphCtx.moveTo(0,y);graphCtx.lineTo(graphCanvas.width,y);const timeValue=(maxTimeDelta*(graphCanvas.height-y)/graphCanvas.height).toFixed(2);
-    #     if(isFinite(timeValue)){graphCtx.fillText(timeValue+" ms",graphCanvas.width-50,y+12)}}graphCtx.stroke();graphCtx.beginPath();graphCtx.strokeStyle="black";graphCtx.moveTo(0,0);
-    #     graphCtx.lineTo(graphCanvas.width,0);graphCtx.stroke();graphCtx.beginPath();graphCtx.strokeStyle="black";graphCtx.moveTo(0,graphCanvas.height);graphCtx.lineTo(graphCanvas.width,
-    #     graphCanvas.height);graphCtx.stroke();graphCtx.beginPath();graphCtx.strokeStyle="green";graphCtx.moveTo(0,graphCanvas.height-timeDeltaData[0]*scaleFactor);for(let i=1;i<
-    #     timeDeltaData.length;i+=1){graphCtx.lineTo(i,graphCanvas.height-timeDeltaData[i]*scaleFactor)}graphCtx.stroke();graphCtx.fillStyle="black";graphCtx.font="12px Arial";
-    #     graphCtx.fillText("0 ms",2,graphCanvas.height-2);graphCtx.fillText(`${timeDeltaData.length-1} ms`,graphCanvas.width-30,graphCanvas.height-2);graphCtx.fillText(`${maxTimeDelta.toFixed(2)} ms`
-    #     ,2,10)}function move_handler(event){const currentTime=Date.now();const delta=currentTime-lastEventTime;const x=event.x;const y=event.y;if(delta<=100){if(lastEventTime!==0){timeSinceClear+=
-    #     delta;timeDeltaData.push(delta);const averageDelta=timeDeltaData.length===0?0:timeDeltaData.reduce((sum,value)=>sum+value)/timeDeltaData.length;const frequency=averageDelta===0?0:1000/
-    #     averageDelta;tab.textContent=`average ClickDeltaTime: ${ averageClickDeltaTime }ms +/-${ click_delta_max_diff }, Average Frequency: ${frequency.toFixed(2)} Hz, count:${timeDeltaData.length }
-    #     ,x:${ x }, y:${ y }`;drawTimeDeltaGraph()}}lastEventTime=currentTime;plot_point(x,y)}function click_handler(e){plot_point(e.x,e.y,"green",5)};function mouseup_handler(){const mouseupTime=
-    #     Date.now();const deltaTime=mouseupTime-mousedownTime;clickdeltaTimes.push(deltaTime);delta_average=clickdeltaTimes.reduce((sum,time)=>sum+time,
-    #     0)/clickdeltaTimes.length;click_delta_max_diff=round_2(((Math.max(...clickdeltaTimes)-delta_average)+(delta_average-Math.min(...clickdeltaTimes)))/2);averageClickDeltaTime=
-    #     round_2(delta_average)}document.body.appendChild(canvas);document.body.appendChild(graphCanvas);document.addEventListener("mousemove",move_handler);document.addEventListener("click",
-    #     click_handler);document.addEventListener("mousedown",(e)=>{mousedownTime=Date.now()});document.body.appendChild(tab);window.addEventListener("resize",updateCanvasDimensions);
-    #     document.body.appendChild(clearButton);clearButton.addEventListener("click",clear);updateCanvasDimensions();document.addEventListener("mouseup",mouseup_handler);})"""
-    # await async_page.add_init_script(x)
-
     await async_page.goto(server.PREFIX + "/input/scrollable.html")
     await async_page.async_input.move(500, 100)  # type: ignore[attr-defined]
 
