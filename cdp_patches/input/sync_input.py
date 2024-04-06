@@ -1,8 +1,8 @@
 import random
 import re
+import sys
 import time
 import warnings
-import sys
 from typing import Literal, Optional, Union
 
 if sys.version_info.minor >= 10:
