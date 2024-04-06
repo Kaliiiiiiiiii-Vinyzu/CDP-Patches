@@ -6,8 +6,6 @@ mypy==1.9.0
 types-setuptools==69.2.0.20240317
 black==24.3.0
 isort==5.13.2
-pywinauto==0.6.8
-numpy==1.26.4
 playwright==1.42.0
 selenium==4.18.1
 selenium_driverless==1.8.0.2

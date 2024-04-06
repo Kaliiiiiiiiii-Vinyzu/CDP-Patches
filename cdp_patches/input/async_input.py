@@ -5,7 +5,13 @@ import random
 import re
 import time
 import warnings
-from typing import Any, Generator, Literal, Optional, TypeAlias, Union
+import sys
+from typing import Any, Generator, Literal, Optional, Union
+
+if sys.version_info.minor >= 10:
+    from typing import TypeAlias
+else:
+    TypeAlias = "TypeAlias"
 
 from cdp_patches import is_windows
 
