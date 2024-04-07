@@ -8,7 +8,7 @@ from typing import Literal, Optional, Union
 if sys.version_info.minor >= 10:
     from typing import TypeAlias
 else:
-    TypeAlias = "TypeAlias"
+    TypeAlias = "TypeAlias"  # type: ignore[assignment]
 
 from cdp_patches import is_windows
 
