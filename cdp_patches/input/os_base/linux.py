@@ -1,15 +1,12 @@
 import re
 import subprocess
 import time
-from typing import Any, Literal, Tuple
+from typing import Any, List, Literal, Tuple
 
-from xdo import Xdo
 from Xlib import X, display
 from Xlib.ext.xtest import fake_input
 from Xlib.XK import string_to_keysym
 from Xlib.xobject.drawable import Window
-
-xdo = Xdo()
 
 symbol_dict = {  # Every Common Symbol on a QWERTY Keyboard, Source: https://github.com/python-xlib/python-xlib/blob/4e8bbf8fc4941e5da301a8b3db8d27e98de68666/Xlib/keysymdef/latin1.py
     "+": "plus",
@@ -93,30 +90,45 @@ class LinuxBase:
         self.browser_window = self.display.create_resource_object("window", self.tab_pid)
 
     def get_window(self) -> Any:
-        res_windows = xdo.search_windows(pid=self.pid)
+        name_atom = self.display.get_atom("WM_NAME", only_if_exists=True)
+        pid_atom = self.display.get_atom("_NET_WM_PID", only_if_exists=True)
+        res_windows: List[Window] = []
+
+        # Getting all WindowIds by PID by recursively searching through all windows under the root window query tree
+        def search_windows_by_pid(query_tree, pid: int):
+            for window in query_tree.children:
+                window_pid = window.get_property(pid_atom, 0, 0, pow(2, 32) - 1)
+                if window_pid and window_pid.value[0] == pid:
+                    res_windows.append(window)
+                if window.query_tree().children:
+                    search_windows_by_pid(window.query_tree(), pid)
+
+        search_windows_by_pid(self.display.screen().root.query_tree(), self.pid)
 
         for window in res_windows:
-            window_size = xdo.get_window_size(window)
-            title = xdo.get_window_name(window)
+            # Getting necessary window properties
+            title = window.get_property(name_atom, 0, 0, pow(2, 32) - 1)
+            parent_offset_coords = window.translate_coords(window.query_tree().parent, 0, 0)
+            window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
 
-            # Filtering out helper windows (like the taskbar)
-            if (title == b"google-chrome") or (window_size.width == window_size.height):
+            # Filter out non-browser windows, for example the Taskbar or Info Bars
+            if (title == b"google-chrome") or (title == b"chrome") or (window_x == window_y) or not all((window_x, window_y)):
                 continue
 
-            return window
+            self.browser_window = window
+            return self.browser_window
 
         raise ValueError("No browser window found")
 
     def _offset_toolbar_height(self) -> Tuple[int, int]:
-        window_location = xdo.get_window_location(self.tab_pid)
+        # Get Window Location
+        root_offset_coords = self.browser_window.translate_coords(self.browser_window.query_tree().root, 0, 0)
+        parent_offset_coords = self.browser_window.translate_coords(self.browser_window.query_tree().parent, 0, 0)
+        window_x = abs(root_offset_coords.x) + abs(parent_offset_coords.x)
+        window_y = abs(root_offset_coords.y) + abs(parent_offset_coords.y)
 
         # Get Chrome Toolbar Height (Note: Fetching Chromes "Program Specified Minimum Size" - 1 for Chrome Toolbar Height + 1 for the Minimum Tab Size)
-        normal_hints_atom = self.display.get_atom("WM_NORMAL_HINTS", only_if_exists=True)
-        if normal_hints_atom == X.NONE:
-            raise ValueError('No Atom interned with the Name "WM_NORMAL_HINTS".')
-
-        normal_hints = self.browser_window.get_property(normal_hints_atom, 0, 0, pow(2, 32) - 1)
-        chrome_toolbar_height = normal_hints.value[6] - 1
+        chrome_toolbar_height = self.browser_window.get_wm_normal_hints().min_height - 1
 
         # Get Linux (Outer) Window Toolbar Height
         frame_extends_atom = self.display.get_atom("_NET_FRAME_EXTENTS", only_if_exists=True)
@@ -127,8 +139,8 @@ class LinuxBase:
         window_toolbar_height = net_frame_extends.value[2]
         window_toolbar_width = net_frame_extends.value[3]
 
-        offset_width: int = window_location.x - window_toolbar_width
-        offset_height: int = window_location.y - window_toolbar_height + chrome_toolbar_height
+        offset_width: int = window_x - window_toolbar_width
+        offset_height: int = window_y - window_toolbar_height + chrome_toolbar_height
         return offset_width, offset_height
 
     @staticmethod
