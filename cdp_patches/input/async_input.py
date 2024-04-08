@@ -24,13 +24,11 @@ if is_windows:
     InputBase = WindowsBase  # type: ignore
     WindowErrors = (AssertionError, ValueError, ElementNotVisible, ElementNotEnabled)  # type: ignore[assignment]
 else:
-    from xdo.xdo import XdoException
-
     from cdp_patches.input.os_base.linux import LinuxBase  # type: ignore[assignment]
 
     WindowsBase: TypeAlias = LinuxBase  # type: ignore[no-redef]
     InputBase = LinuxBase  # type: ignore
-    WindowErrors = (AssertionError, ValueError, XdoException)  # type: ignore[assignment]
+    WindowErrors = (AssertionError, ValueError)  # type: ignore[assignment]
 
 from .browsers import async_browsers, get_async_browser_pid, get_async_scale_factor
 from .mouse_trajectory import HumanizeMouseTrajectory

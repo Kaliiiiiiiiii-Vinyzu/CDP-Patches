@@ -104,6 +104,7 @@ class LinuxBase:
                     search_windows_by_pid(window.query_tree(), pid)
 
         search_windows_by_pid(self.display.screen().root.query_tree(), self.pid)
+        assert res_windows, ValueError(f"No windows found for PID: {self.pid}")
 
         for window in res_windows:
             # Getting necessary window properties
@@ -118,7 +119,7 @@ class LinuxBase:
             self.browser_window = window
             return self.browser_window
 
-        raise ValueError("No browser window found")
+        raise ValueError(f"No windows found for PID: {self.pid}")
 
     def _offset_toolbar_height(self) -> Tuple[int, int]:
         # Get Window Location
