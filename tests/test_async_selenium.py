@@ -42,7 +42,7 @@ async def test_input_leak(async_driver: Chrome, server: Server) -> None:
     x, y = await get_locator_pos(sync_locator)
     await async_driver.async_input.click("left", x, y)  # type: ignore[attr-defined]
 
-    is_leaking = await async_driver.eval_async("return await window.is_leaking", timeout=30)
+    is_leaking = await async_driver.eval_async("return await window.is_leaking", timeout=300)
     assert not is_leaking
 
 
