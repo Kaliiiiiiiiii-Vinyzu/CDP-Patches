@@ -1,3 +1,4 @@
+import os
 import re
 import subprocess
 import time
@@ -90,7 +91,8 @@ class LinuxBase:
         self.pid = pid
         self.scale_factor = scale_factor
 
-        self.display = display.Display()
+        display_env = os.getenv("DISPLAY")
+        self.display = display.Display(display_env)
         self.tab_pid = self.get_window()
 
         self.browser_window = self.display.create_resource_object("window", self.tab_pid)
