@@ -117,11 +117,12 @@ class LinuxBase:
         for window in res_windows:
             # Getting necessary window properties
             title = window.get_property(name_atom, 0, 0, pow(2, 32) - 1).value
+            min_height = window.get_wm_normal_hints().min_height
             # parent_offset_coords = window.translate_coords(window.query_tree().parent, 0, 0)
             # window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
 
             # Filter out non-browser windows, for example the Taskbar or Info Bars
-            if (b"google-chrome" in title) or (title == b"chrome"):  # or (window_x == window_y) or not all((window_x, window_y))
+            if (b"google-chrome" in title) or (title == b"chrome") or (min_height == 0):  # or (window_x == window_y) or not all((window_x, window_y))
                 continue
 
             self.browser_window = window
@@ -145,8 +146,12 @@ class LinuxBase:
             raise ValueError('No Atom interned with the Name "_NET_FRAME_EXTENTS".')
 
         net_frame_extends = self.browser_window.get_property(frame_extends_atom, 0, 0, pow(2, 32) - 1)
-        window_toolbar_height = net_frame_extends.value[2]
-        window_toolbar_width = net_frame_extends.value[3]
+        if net_frame_extends:
+            window_toolbar_height = net_frame_extends.value[2]
+            window_toolbar_width = net_frame_extends.value[3]
+        else:
+            window_toolbar_height = 0
+            window_toolbar_width = 0
 
         offset_width: int = window_x - window_toolbar_width
         offset_height: int = window_y - window_toolbar_height + chrome_toolbar_height
