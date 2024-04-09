@@ -121,7 +121,7 @@ class LinuxBase:
             window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
 
             # Filter out non-browser windows, for example the Taskbar or Info Bars
-            if (title == b"google-chrome") or (title == b"chrome") or (window_x == window_y) or not all((window_x, window_y)):
+            if (b"google-chrome" in title) or (title == b"chrome"):  # or (window_x == window_y) or not all((window_x, window_y))
                 continue
 
             self.browser_window = window
