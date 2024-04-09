@@ -116,9 +116,9 @@ class LinuxBase:
 
         for window in res_windows:
             # Getting necessary window properties
-            title = window.get_property(name_atom, 0, 0, pow(2, 32) - 1)
-            parent_offset_coords = window.translate_coords(window.query_tree().parent, 0, 0)
-            window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
+            title = window.get_property(name_atom, 0, 0, pow(2, 32) - 1).value
+            # parent_offset_coords = window.translate_coords(window.query_tree().parent, 0, 0)
+            # window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
 
             # Filter out non-browser windows, for example the Taskbar or Info Bars
             if (b"google-chrome" in title) or (title == b"chrome"):  # or (window_x == window_y) or not all((window_x, window_y))
