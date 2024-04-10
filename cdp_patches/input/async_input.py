@@ -116,8 +116,8 @@ class AsyncInput:
 
         await self.click(button=button, x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour)
         if self.emulate_behaviour and emulate_behaviour:
-            # self._sleep_timeout(random.uniform(0.14, 0.21))
-            await self._sleep_timeout(timeout=timeout)
+            await self._sleep_timeout(random.uniform(0.14, 0.21))
+            # await self._sleep_timeout(timeout=timeout)
         await self.click(button=button, x=x, y=y, emulate_behaviour=False, timeout=timeout)
 
         self.last_x, self.last_y = x, y

@@ -111,8 +111,8 @@ class SyncInput:
 
         self.click(button=button, x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour)
         if emulate_behaviour and self.emulate_behaviour:
-            # self._sleep_timeout(random.uniform(0.14, 0.21))
-            self._sleep_timeout(timeout=timeout)
+            self._sleep_timeout(random.uniform(0.14, 0.21))
+            # self._sleep_timeout(timeout=timeout)
         self.click(button=button, x=x, y=y, emulate_behaviour=False, timeout=timeout)
 
         self.last_x, self.last_y = x, y
