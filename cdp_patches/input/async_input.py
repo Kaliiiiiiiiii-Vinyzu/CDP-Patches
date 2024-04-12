@@ -19,10 +19,11 @@ if is_windows:
     from pywinauto.base_wrapper import ElementNotEnabled, ElementNotVisible
 
     from cdp_patches.input.os_base.windows import WindowsBase  # type: ignore[assignment]
+    from pywinauto.application import ProcessNotFoundError
 
     LinuxBase: TypeAlias = WindowsBase  # type: ignore[no-redef]
     InputBase = WindowsBase  # type: ignore
-    WindowErrors = (AssertionError, ValueError, ElementNotVisible, ElementNotEnabled)  # type: ignore[assignment]
+    WindowErrors = (AssertionError, ValueError, ElementNotVisible, ElementNotEnabled, ProcessNotFoundError)  # type: ignore[assignment]
 else:
     from cdp_patches.input.os_base.linux import LinuxBase  # type: ignore[assignment]
 
@@ -82,10 +83,10 @@ class AsyncInput:
             self._base.scale_factor = scale_value
 
     async def _wait_for_window(self) -> None:
-        max_wait = time.time() + self.window_timeout
-        while time.time() < max_wait:
+        max_wait = time.perf_counter() + self.window_timeout
+        while time.perf_counter() < max_wait:
             try:
-                if await self._base.async_get_window():
+                if await self.base.async_get_window():
                     return
             except WindowErrors:
                 pass

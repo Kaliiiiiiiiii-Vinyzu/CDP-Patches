@@ -76,8 +76,8 @@ class SyncInput:
             self._base.scale_factor = scale_value
 
     def _wait_for_window(self) -> None:
-        max_wait = time.time() + self.window_timeout
-        while time.time() < max_wait:
+        max_wait = time.perf_counter() + self.window_timeout
+        while time.perf_counter() < max_wait:
             try:
                 if self._base.get_window():
                     return

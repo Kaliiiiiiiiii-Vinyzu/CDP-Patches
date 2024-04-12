@@ -1,6 +1,7 @@
 import asyncio
 import os
 import typing
+from aiodebug import log_slow_callbacks
 
 from selenium_driverless.webdriver import Chrome, ChromeOptions
 from selenium_driverless.utils.utils import find_chrome_executable
@@ -10,6 +11,8 @@ from tests.conftest import flags
 import subprocess
 
 import ctypes
+
+log_slow_callbacks.enable(0.01)
 
 
 async def get_conversion(async_driver: typing.Union[Chrome, async_playwright] = None) -> typing.Tuple[
@@ -73,12 +76,7 @@ async def conversion_driverless() -> typing.Tuple[typing.List[typing.Tuple], typ
         options.add_argument(flag)
     options.add_argument("--device-scale-factor=0.4")
     async with Chrome() as driver:
-        async_input = await AsyncInput(browser=driver)
-
-        is_dpi_aware = is_aware(async_input.pid)
-        if is_dpi_aware:
-            async_input.scale_factor = async_input.scale_factor * (
-                    ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100)
+        async_input = await AsyncInput(pid=13)
 
         driver.async_input = async_input
         return await get_conversion(driver)
@@ -91,9 +89,7 @@ async def conversion_playwright() -> typing.Tuple[typing.List[typing.Tuple], typ
         page = await context.new_page()
         async_input = await AsyncInput(browser=context)
 
-        is_dpi_aware = is_aware(async_input.pid)
-        if is_dpi_aware:
-            async_input.scale_factor = async_input.scale_factor * (
+        async_input.scale_factor = async_input.scale_factor * (
                         ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100)
 
         page.async_input = async_input

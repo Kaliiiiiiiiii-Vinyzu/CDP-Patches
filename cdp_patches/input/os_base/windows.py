@@ -27,7 +27,7 @@ class WindowsBase:
 
     def get_window(self) -> WindowSpecification:
         win32_app = application.Application(backend="win32")
-        win32_app.connect(process=self.pid)
+        win32_app.connect(process=self.pid, timeout=1)
 
         self.browser_window: WindowSpecification = win32_app.top_window()
         self.hwnd = self.browser_window.handle
@@ -42,7 +42,7 @@ class WindowsBase:
 
     async def async_get_window(self) -> WindowSpecification:
         win32_app = application.Application(backend="win32")
-        await self._loop.run_in_executor(None, lambda: win32_app.connect(process=self.pid))
+        await self._loop.run_in_executor(None, lambda: win32_app.connect(process=self.pid, timeout=1))
 
         self.browser_window: WindowSpecification = win32_app.top_window()
         self.hwnd = self.browser_window.handle
