@@ -1,13 +1,17 @@
 import asyncio
+import os
 import typing
 
 from selenium_driverless.webdriver import Chrome, ChromeOptions
+from selenium_driverless.utils.utils import find_chrome_executable
 from playwright.async_api import async_playwright
 from cdp_patches.input import AsyncInput
 from tests.conftest import flags
+import subprocess
 
 
-async def get_conversion(async_driver: typing.Union[Chrome, async_playwright]) -> typing.Tuple[typing.List[typing.Tuple], typing.List[typing.Tuple]]:
+async def get_conversion(async_driver: typing.Union[Chrome, async_playwright] = None) -> typing.Tuple[
+        typing.List[typing.Tuple], typing.List[typing.Tuple]]:
     points = [
         (100, 100),
         (110, 120),
@@ -61,7 +65,10 @@ async def conversion_playwright() -> typing.Tuple[typing.List[typing.Tuple], typ
 
 
 async def main():
-    driverless, playwright = await asyncio.gather(conversion_driverless(), conversion_playwright())
+    driverless, playwright = await asyncio.gather(
+        conversion_driverless(),
+        conversion_playwright()
+    )
     print("Driverless:")
     print(driverless[0])
     print(driverless[1])
@@ -71,5 +78,36 @@ async def main():
     print(playwright[1])
 
 
+async def run_default() -> typing.List[typing.Tuple]:
+    proc = None
+    try:
+        proc = subprocess.Popen(find_chrome_executable())
+        breakpoint()
+        points = [
+            (100, 100),
+            (110, 120),
+            (120, 110),
+            (110, 120),
+            (100, 110),
+            (110, 100),
+            (100, 120),
+            (120, 100),
+            (120, 120)
+        ]
+        async_input = await AsyncInput(proc.pid)
+
+        await asyncio.sleep(0.1)
+        for x, y in points:
+            await async_input.click("left", x, y)  # type: ignore[attr-defined]
+            await asyncio.sleep(0.1)
+        print(points)
+        return points
+    finally:
+        if proc:
+            breakpoint()
+            os.kill(proc.pid, 7)
+
+
 if __name__ == "__main__":
     asyncio.run(main())
+    # asyncio.run(run_default())
