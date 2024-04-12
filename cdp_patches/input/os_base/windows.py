@@ -28,6 +28,7 @@ class WindowsBase:
         win32_app.connect(process=self.pid)
 
         self.browser_window: WindowSpecification = win32_app.top_window()
+        self.hwnd = self.browser_window.handle
         # Perform Window Checks
         self.browser_window.verify_actionable()
         assert self.browser_window.is_normal()
