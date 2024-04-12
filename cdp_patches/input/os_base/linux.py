@@ -1,3 +1,4 @@
+import asyncio
 import os
 import re
 import subprocess
@@ -90,6 +91,7 @@ class LinuxBase:
     def __init__(self, pid: int, scale_factor: float) -> None:
         self.pid = pid
         self.scale_factor = scale_factor
+        self._loop = asyncio.get_event_loop()
 
         display_env = os.getenv("DISPLAY")
         self.display = display.Display(display_env)
@@ -123,6 +125,40 @@ class LinuxBase:
 
             # Filter out non-browser windows, for example the Taskbar or Info Bars
             if (b"google-chrome" in title) or (title == b"chrome") or (min_height == 0):  # or (window_x == window_y) or not all((window_x, window_y))
+                continue
+
+            self.browser_window = window
+            return self.browser_window
+
+        raise ValueError(f"No windows found for PID: {self.pid}")
+
+    async def async_get_window(self) -> Any:
+        name_atom = self.display.get_atom("WM_NAME", only_if_exists=True)
+        pid_atom = self.display.get_atom("_NET_WM_PID", only_if_exists=True)
+        res_windows: List[Window] = []
+
+        # Getting all WindowIds by PID by recursively searching through all windows under the root window query tree
+        def search_windows_by_pid(query_tree, pid: int):
+            for window in query_tree.children:
+                window_pid = window.get_property(pid_atom, 0, 0, pow(2, 32) - 1)
+                if window_pid and window_pid.value[0] == pid:
+                    res_windows.append(window)
+                if window.query_tree().children:
+                    search_windows_by_pid(window.query_tree(), pid)
+
+        await self._loop.run_in_executor(None, lambda: search_windows_by_pid(self.display.screen().root.query_tree(), self.pid))
+        assert res_windows, ValueError(f"No windows found for PID: {self.pid}")
+
+        for window in res_windows:
+            # Getting necessary window properties
+            title = window.get_property(name_atom, 0, 0, pow(2, 32) - 1).value
+            min_height = window.get_wm_normal_hints().min_height
+            # parent_offset_coords = window.translate_coords(window.query_tree().parent, 0, 0)
+            # window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
+
+            # Filter out non-browser windows, for example the Taskbar or Info Bars
+            if (b"google-chrome" in title) or (title == b"chrome") or (
+                    min_height == 0):  # or (window_x == window_y) or not all((window_x, window_y))
                 continue
 
             self.browser_window = window

@@ -1,3 +1,4 @@
+import asyncio
 import re
 import warnings
 from typing import Literal
@@ -22,6 +23,7 @@ class WindowsBase:
     def __init__(self, pid: int, scale_factor: float) -> None:
         self.pid = pid
         self.scale_factor = scale_factor
+        self._loop = asyncio.get_event_loop()
 
     def get_window(self) -> WindowSpecification:
         win32_app = application.Application(backend="win32")
@@ -31,6 +33,21 @@ class WindowsBase:
         self.hwnd = self.browser_window.handle
         # Perform Window Checks
         self.browser_window.verify_actionable()
+        assert self.browser_window.is_normal()
+
+        for child in self.browser_window.iter_children():
+            if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
+                self.browser_window = child
+        return self.browser_window
+
+    async def async_get_window(self) -> WindowSpecification:
+        win32_app = application.Application(backend="win32")
+        await self._loop.run_in_executor(None, lambda: win32_app.connect(process=self.pid))
+
+        self.browser_window: WindowSpecification = win32_app.top_window()
+        self.hwnd = self.browser_window.handle
+        # Perform Window Checks
+        await self._loop.run_in_executor(None, lambda:self.browser_window.verify_actionable())
         assert self.browser_window.is_normal()
 
         for child in self.browser_window.iter_children():

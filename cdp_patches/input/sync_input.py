@@ -1,6 +1,7 @@
 import random
 import re
 import sys
+import threading
 import time
 import warnings
 from typing import Literal, Optional, Union
@@ -47,6 +48,7 @@ class SyncInput:
     def __init__(self, pid: Optional[int] = None, browser: Optional[sync_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True) -> None:
         self._scale_factor = scale_factor or self._scale_factor
         self.emulate_behaviour = emulate_behaviour or self.emulate_behaviour
+        self._move_lock = threading.Lock()
 
         if browser:
             self.pid = get_sync_browser_pid(browser)
@@ -132,18 +134,19 @@ class SyncInput:
         self.last_x, self.last_y = x, y
 
     def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
-        x, y = int(x), int(y)
+        with self._move_lock:
+            x, y = int(x), int(y)
 
-        if self.emulate_behaviour and emulate_behaviour:
-            humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
+            if self.emulate_behaviour and emulate_behaviour:
+                humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
 
-            # Move Mouse to new random locations
-            for i, (human_x, human_y) in enumerate(humanized_points.points):
-                self._base.move(x=int(human_x), y=int(human_y))
-                self._sleep_timeout(timeout=timeout)
+                # Move Mouse to new random locations
+                for i, (human_x, human_y) in enumerate(humanized_points.points):
+                    self._base.move(x=int(human_x), y=int(human_y))
+                    self._sleep_timeout(timeout=timeout)
 
-        self._base.move(x=x, y=y)
-        self.last_x, self.last_y = x, y
+            self._base.move(x=x, y=y)
+            self.last_x, self.last_y = x, y
 
     def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
         warnings.warn("Scrolling using CDP-Patches is discouraged as Scroll Inputs dont leak the CDP Domain.", UserWarning)

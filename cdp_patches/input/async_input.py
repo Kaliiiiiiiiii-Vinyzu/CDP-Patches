@@ -51,6 +51,7 @@ class AsyncInput:
         self.browser = browser
         self._scale_factor = scale_factor or self._scale_factor
         self.emulate_behaviour = emulate_behaviour or self.emulate_behaviour
+        self._move_lock = asyncio.Lock()
 
     def __await__(self) -> Generator[None, Any, AsyncInput]:
         yield from self.__ainit__().__await__()
@@ -84,7 +85,7 @@ class AsyncInput:
         max_wait = time.time() + self.window_timeout
         while time.time() < max_wait:
             try:
-                if self._base.get_window():
+                if await self._base.async_get_window():
                     return
             except WindowErrors:
                 pass
@@ -137,19 +138,20 @@ class AsyncInput:
         self.last_x, self.last_y = x, y
 
     async def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
-        x, y = int(x), int(y)
+        async with self._move_lock:
+            x, y = int(x), int(y)
 
-        if self.emulate_behaviour and emulate_behaviour:
-            humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
+            if self.emulate_behaviour and emulate_behaviour:
+                humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
 
-            # Move Mouse to new random locations
-            for i, (human_x, human_y) in enumerate(humanized_points.points):
-                self._base.move(x=int(human_x), y=int(human_y))
-                await self._sleep_timeout(timeout=timeout)
+                # Move Mouse to new random locations
+                for i, (human_x, human_y) in enumerate(humanized_points.points):
+                    self._base.move(x=int(human_x), y=int(human_y))
+                    await self._sleep_timeout(timeout=timeout)
 
-        else:
-            self._base.move(x=x, y=y)
-        self.last_x, self.last_y = x, y
+            else:
+                self._base.move(x=x, y=y)
+            self.last_x, self.last_y = x, y
 
     async def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
         warnings.warn("Scrolling using CDP-Patches is discouraged as Scroll Inputs dont leak the CDP Domain.", UserWarning)
