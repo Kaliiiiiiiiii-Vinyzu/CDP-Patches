@@ -76,7 +76,7 @@ async def conversion_driverless() -> typing.Tuple[typing.List[typing.Tuple], typ
         options.add_argument(flag)
     options.add_argument("--device-scale-factor=0.4")
     async with Chrome() as driver:
-        async_input = await AsyncInput(pid=13)
+        async_input = await AsyncInput(browser=driver)
 
         driver.async_input = async_input
         return await get_conversion(driver)
