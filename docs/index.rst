@@ -43,6 +43,10 @@ SyncInput_
 | ``emulate_behaviour`` (bool)         | Wether to emulate human behaviour.        |
 |                                      | Defaults to ``True``                      |
 +--------------------------------------+-------------------------------------------+
+| ``window_timeout`` (float)           | Timeout in seconds to wait for a window to|
+|                                      | be found.                                 |
+|                                      | Defaults to ``30``                        |
++--------------------------------------+-------------------------------------------+
 
 Methods
 ~~~~~~~~
@@ -110,6 +114,10 @@ AsyncInput_
 +--------------------------------------+--------------------------------------+
 | ``emulate_behaviour`` (bool)         | Wether to emulate human behaviour.   |
 |                                      | Defaults to ``True``                 |
++--------------------------------------+--------------------------------------+
+| ``window_timeout`` (float)           | Timeout in seconds to wait for a w   |
+|                                      | indow to be found.                   |
+|                                      | Defaults to ``30``                   |
 +--------------------------------------+--------------------------------------+
 
 Methods
