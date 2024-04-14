@@ -62,7 +62,7 @@ class SyncInput:
         self._wait_for_window()
 
         # Include Windows Scale Factor for every browser except DriverlessSyncChrome
-        if not isinstance(browser, DriverlessSyncChrome):
+        if is_windows and not isinstance(browser, DriverlessSyncChrome):
             self._base.include_windows_scale_factor()
 
     @property
