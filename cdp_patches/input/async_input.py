@@ -16,10 +16,10 @@ else:
 from cdp_patches import is_windows
 
 if is_windows:
+    from pywinauto.application import ProcessNotFoundError
     from pywinauto.base_wrapper import ElementNotEnabled, ElementNotVisible
 
     from cdp_patches.input.os_base.windows import WindowsBase  # type: ignore[assignment]
-    from pywinauto.application import ProcessNotFoundError
 
     LinuxBase: TypeAlias = WindowsBase  # type: ignore[no-redef]
     InputBase = WindowsBase  # type: ignore
@@ -31,7 +31,7 @@ else:
     InputBase = LinuxBase  # type: ignore
     WindowErrors = (AssertionError, ValueError)  # type: ignore[assignment]
 
-from .browsers import async_browsers, get_async_browser_pid, get_async_scale_factor
+from .browsers import DriverlessAsyncChrome, async_browsers, get_async_browser_pid, get_async_scale_factor
 from .mouse_trajectory import HumanizeMouseTrajectory
 
 
@@ -67,6 +67,10 @@ class AsyncInput:
 
         self._base = InputBase(self.pid, self._scale_factor)  # type: ignore
         await self._wait_for_window()
+
+        # Include Windows Scale Factor for every browser except DriverlessSyncChrome
+        if is_windows and not isinstance(self.browser, DriverlessAsyncChrome):
+            self._base.include_windows_scale_factor()
 
     @property
     def base(self) -> Union[WindowsBase, LinuxBase]:

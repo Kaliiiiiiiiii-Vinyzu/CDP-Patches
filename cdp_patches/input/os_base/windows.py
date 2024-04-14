@@ -1,10 +1,12 @@
 import asyncio
+import ctypes
 import re
 import warnings
-from typing import Literal
+from typing import Literal, Union
 
 from pywinauto import application, timings
 from pywinauto.application import WindowSpecification
+from pywinauto.controls.hwndwrapper import HwndWrapper
 
 timings.Timings.fast()
 timings.TimeConfig._timings["sendmessagetimeout_timeout"] = 0
@@ -14,7 +16,7 @@ warnings.filterwarnings("ignore", category=UserWarning, message="32-bit applicat
 
 
 class WindowsBase:
-    browser_window: WindowSpecification
+    browser_window: Union[WindowSpecification, HwndWrapper]
     hwnd: int
     pid: int
     scale_factor: float = 1.0
@@ -24,6 +26,10 @@ class WindowsBase:
         self.pid = pid
         self.scale_factor = scale_factor
         self._loop = asyncio.get_event_loop()
+
+    def include_windows_scale_factor(self):
+        windows_scale_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
+        self.scale_factor *= windows_scale_factor
 
     def get_window(self) -> WindowSpecification:
         win32_app = application.Application(backend="win32")
@@ -47,7 +53,7 @@ class WindowsBase:
         self.browser_window: WindowSpecification = win32_app.top_window()
         self.hwnd = self.browser_window.handle
         # Perform Window Checks
-        await self._loop.run_in_executor(None, lambda:self.browser_window.verify_actionable())
+        await self._loop.run_in_executor(None, lambda: self.browser_window.verify_actionable())
         assert self.browser_window.is_normal()
 
         for child in self.browser_window.iter_children():

@@ -287,3 +287,6 @@ async def get_async_scale_factor(browser: async_browsers) -> int:
         return await get_async_playwright_scale_factor(browser)
 
     raise ValueError("Invalid browser type.")
+
+
+__all__ = ["DriverlessSyncChrome", "DriverlessAsyncChrome"]

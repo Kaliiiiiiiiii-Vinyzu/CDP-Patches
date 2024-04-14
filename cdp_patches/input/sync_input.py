@@ -28,7 +28,7 @@ else:
     InputBase = LinuxBase  # type: ignore
     WindowErrors = (AssertionError, ValueError)  # type: ignore[assignment]
 
-from .browsers import get_sync_browser_pid, get_sync_scale_factor, sync_browsers
+from .browsers import DriverlessSyncChrome, get_sync_browser_pid, get_sync_scale_factor, sync_browsers
 from .mouse_trajectory import HumanizeMouseTrajectory
 
 
@@ -60,6 +60,10 @@ class SyncInput:
 
         self._base = InputBase(self.pid, self._scale_factor)  # type: ignore
         self._wait_for_window()
+
+        # Include Windows Scale Factor for every browser except DriverlessSyncChrome
+        if not isinstance(browser, DriverlessSyncChrome):
+            self._base.include_windows_scale_factor()
 
     @property
     def base(self) -> Union[WindowsBase, LinuxBase]:
