@@ -70,7 +70,7 @@ def process_info_from_ws(ws_url: str) -> dict:
                 return data["result"]
 
 
-def get_ws_url_from_url(url: str, timeout:float=30) -> str:
+def ws_url_from_url(url: str, timeout: float = 30) -> str:
     if len(url) < 7 or url[:7] != "http://":
         url = "http://" + url + "/json/version"
     try:
@@ -80,14 +80,18 @@ def get_ws_url_from_url(url: str, timeout:float=30) -> str:
     return data["webSocketDebuggerUrl"]
 
 
+def process_info_from_url(url: str) -> dict:
+    ws_url = ws_url_from_url(url)
+    return process_info_from_ws(ws_url)
+
+
 # Browser PID
 # Selenium & Selenium Driverless
 def get_sync_selenium_browser_pid(driver: Union[SeleniumChrome, DriverlessSyncChrome]) -> int:
     if isinstance(driver, DriverlessSyncChrome):
         cdp_system_info = driver.base_target.execute_cdp_cmd(cmd="SystemInfo.getProcessInfo")
     elif isinstance(driver, SeleniumChrome):
-        ws_url = get_ws_url_from_url(driver.capabilities['goog:chromeOptions']['debuggerAddress'])
-        cdp_system_info = process_info_from_ws(ws_url)
+        cdp_system_info = process_info_from_url(driver.capabilities['goog:chromeOptions']['debuggerAddress'])
     else:
         raise ValueError("Invalid browser type.")
     process_info = CDPProcessInfo(cdp_system_info)
