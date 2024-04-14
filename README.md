@@ -116,13 +116,6 @@ if __name__ == '__main__':
     asyncio.run(main())
 ```
 
-> [!IMPORTANT]  
-> By the nature of OS-level events (which can only impact actionable windows), this package can only be used with headful browsers.
-
-> [!IMPORTANT]  
-> Because Chrome does not recognize Input Events to specific tabs, these methods can only be used on the active tab. 
-> Chrome Tabs do have their own process with a process id (pid), but these can not be controlled using Input Events as they´re just engines.
-
 ### TODO
 - [ ] Improve mouse movement timings.
 - [ ] Implement extensive testing.
@@ -130,6 +123,15 @@ if __name__ == '__main__':
 #### Owner: [Vinyzu](https://github.com/Vinyzu/)
 #### Co-Maintainer: [Kaliiiiiiiiii](https://github.com/kaliiiiiiiiii/)
 </details>
+
+
+> [!IMPORTANT]  
+> By the nature of OS-level events (which can only impact actionable windows), this package can only be used with headful browsers.
+
+> [!WARNING]  
+> Because Chrome does not recognize Input Events to specific tabs, these methods can only be used on the active tab. 
+> Chrome Tabs do have their own process with a process id (pid), but these can not be controlled using Input Events as they´re just engines.
+
 
 Read the [Documentation](https://vinyzu.gitbook.io/cdp-patches-documentation)
 
