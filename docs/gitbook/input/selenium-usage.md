@@ -6,6 +6,7 @@
 
 ```python
 from selenium import webdriver
+from selenium.webdriver.remote.webelement import WebElement
 from cdp_patches.input import SyncInput
 
 # Locator Position Helper
@@ -51,13 +52,14 @@ async def get_locator_pos(locator: WebElement):
     x, y = x + width // 2, y + height // 2
     return x, y
 
-async with async_webdriver.Chrome(options) as driver:
+async with webdriver.Chrome(options) as driver:
     async_input = await AsyncInput(browser=driver)
 
     # Example: Click Button
     # Find Button Coords
-    locator = await async_driver.find_element(By.XPATH, "//button")
+    locator = await driver.find_element(By.XPATH, "//button")
     x, y = await get_locator_pos(locator)
     # Click Coords => Click Button
-    await aawait async_driver.find_element(By.XPATH, "//button")sync_input.click("left", x, y)
+    await driver.find_element(By.XPATH, "//button")
+    await async_input.click("left", x, y)
 ```
