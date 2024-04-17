@@ -7,6 +7,7 @@
 ```python
 from selenium import webdriver
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.common.by import By
 from cdp_patches.input import SyncInput
 
 # Locator Position Helper
@@ -37,7 +38,11 @@ with webdriver.Chrome(...) as driver:
 ## Async Usage (Async Selenium-Driverless)
 
 ```python
+import asyncio
+
 from selenium_driverless import webdriver
+from selenium_driverless.types.webelement import WebElement
+from selenium_driverless.types.by import By
 from cdp_patches.input import AsyncInput
 
 # Locator Position Helper
@@ -52,14 +57,17 @@ async def get_locator_pos(locator: WebElement):
     x, y = x + width // 2, y + height // 2
     return x, y
 
-async with webdriver.Chrome(options) as driver:
-    async_input = await AsyncInput(browser=driver)
+async def main():
+    async with webdriver.Chrome(...) as driver:
+        async_input = await AsyncInput(browser=driver)
+    
+        # Example: Click Button
+        # Find Button Coords
+        locator = await driver.find_element(By.XPATH, "//button")
+        x, y = await get_locator_pos(locator)
+        # Click Coords => Click Button
+        await driver.find_element(By.XPATH, "//button")
+        await async_input.click("left", x, y)
 
-    # Example: Click Button
-    # Find Button Coords
-    locator = await driver.find_element(By.XPATH, "//button")
-    x, y = await get_locator_pos(locator)
-    # Click Coords => Click Button
-    await driver.find_element(By.XPATH, "//button")
-    await async_input.click("left", x, y)
+asyncio.run(main())
 ```
