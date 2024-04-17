@@ -1,9 +1,10 @@
-import time
 import json
-import requests
-from websockets.sync import client
+import time
 from contextlib import suppress
 from typing import Dict, List, Type, TypedDict, Union
+
+import requests
+from websockets.sync import client
 
 try:
     from playwright.async_api import Browser as AsyncBrowser
@@ -35,8 +36,7 @@ except ImportError:
     DriverlessAsyncChrome: Type["DriverlessAsyncChrome"] = "DriverlessAsyncChrome"  # type: ignore[no-redef]
     DriverlessSyncChrome: Type["DriverlessSyncChrome"] = "DriverlessSyncChrome"  # type: ignore[no-redef]
 
-all_browsers = Union[
-    AsyncContext, AsyncBrowser, SyncContext, SyncBrowser, BotrightContext, SeleniumChrome, DriverlessAsyncChrome, DriverlessSyncChrome]
+all_browsers = Union[AsyncContext, AsyncBrowser, SyncContext, SyncBrowser, BotrightContext, SeleniumChrome, DriverlessAsyncChrome, DriverlessSyncChrome]
 sync_browsers = Union[SeleniumChrome, SyncContext, SyncBrowser, DriverlessSyncChrome]
 async_browsers = Union[AsyncContext, AsyncBrowser, BotrightContext, DriverlessAsyncChrome]
 
@@ -61,13 +61,20 @@ class CDPProcessInfo:
         raise ValueError("No browser process found.")
 
 
-def process_info_from_ws(ws_url: str) -> dict:
+class SeleniumProcessInfoResponse(TypedDict):
+    id: int
+    result: Dict[str, List[InternalProcessInfo]]
+
+
+def process_info_from_ws(ws_url: str) -> Dict[str, List[InternalProcessInfo]]:
     with client.connect(ws_url) as websocket:
         websocket.send(json.dumps({"id": 1, "method": "SystemInfo.getProcessInfo"}))
         for message in websocket:
-            data = json.loads(message)
+            data: SeleniumProcessInfoResponse = json.loads(message)
             if data.get("id") == 1:
                 return data["result"]
+
+    raise RuntimeError("Couldn't connect to browser.")
 
 
 def ws_url_from_url(url: str, timeout: float = 30) -> str:
@@ -77,10 +84,12 @@ def ws_url_from_url(url: str, timeout: float = 30) -> str:
         data = requests.get(url, timeout=timeout).json()
     except requests.exceptions.Timeout:
         raise TimeoutError(f"Couldn't connect to browser within {timeout} seconds")
-    return data["webSocketDebuggerUrl"]
+
+    websocket_debugger_url: str = data["webSocketDebuggerUrl"]
+    return websocket_debugger_url
 
 
-def process_info_from_url(url: str) -> dict:
+def process_info_from_url(url: str) -> Dict[str, List[InternalProcessInfo]]:
     ws_url = ws_url_from_url(url)
     return process_info_from_ws(ws_url)
 
@@ -91,7 +100,7 @@ def get_sync_selenium_browser_pid(driver: Union[SeleniumChrome, DriverlessSyncCh
     if isinstance(driver, DriverlessSyncChrome):
         cdp_system_info = driver.base_target.execute_cdp_cmd(cmd="SystemInfo.getProcessInfo")
     elif isinstance(driver, SeleniumChrome):
-        cdp_system_info = process_info_from_url(driver.capabilities['goog:chromeOptions']['debuggerAddress'])
+        cdp_system_info = process_info_from_url(driver.capabilities["goog:chromeOptions"]["debuggerAddress"])
     else:
         raise ValueError("Invalid browser type.")
     process_info = CDPProcessInfo(cdp_system_info)
@@ -202,9 +211,7 @@ def get_sync_playwright_scale_factor(browser: Union[SyncContext, SyncBrowser]) -
             page_frame_tree = cdp_session.send("Page.getFrameTree")
             page_id = page_frame_tree["frameTree"]["frame"]["id"]
 
-            isolated_world = cdp_session.send("Page.createIsolatedWorld",
-                                              {"frameId": page_id, "grantUniveralAccess": True,
-                                               "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya"})
+            isolated_world = cdp_session.send("Page.createIsolatedWorld", {"frameId": page_id, "grantUniveralAccess": True, "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya"})
             isolated_exec_id = isolated_world["executionContextId"]
             break
         except SyncError as e:
@@ -218,8 +225,7 @@ def get_sync_playwright_scale_factor(browser: Union[SyncContext, SyncBrowser]) -
     time2 = time.perf_counter()
     while (time.perf_counter() - time2) <= 10:
         try:
-            scale_factor_eval = cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio",
-                                                                      "contextId": isolated_exec_id})
+            scale_factor_eval = cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio", "contextId": isolated_exec_id})
             scale_factor: int = scale_factor_eval["result"]["value"]
             break
         except SyncError as e:
@@ -267,9 +273,7 @@ async def get_async_playwright_scale_factor(browser: Union[AsyncContext, AsyncBr
             page_frame_tree = await cdp_session.send("Page.getFrameTree")
             page_id = page_frame_tree["frameTree"]["frame"]["id"]
 
-            isolated_world = await cdp_session.send("Page.createIsolatedWorld",
-                                                    {"frameId": page_id, "grantUniveralAccess": True,
-                                                     "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya"})
+            isolated_world = await cdp_session.send("Page.createIsolatedWorld", {"frameId": page_id, "grantUniveralAccess": True, "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya"})
             isolated_exec_id = isolated_world["executionContextId"]
             break
         except AsyncError as e:
@@ -283,8 +287,7 @@ async def get_async_playwright_scale_factor(browser: Union[AsyncContext, AsyncBr
     time2 = time.perf_counter()
     while (time.perf_counter() - time2) <= 10:
         try:
-            scale_factor_eval = await cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio",
-                                                                            "contextId": isolated_exec_id})
+            scale_factor_eval = await cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio", "contextId": isolated_exec_id})
             scale_factor: int = scale_factor_eval["result"]["value"]
             break
         except AsyncError as e:

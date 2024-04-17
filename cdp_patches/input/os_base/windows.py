@@ -35,42 +35,64 @@ class WindowsBase:
         win32_app = application.Application(backend="win32")
         win32_app.connect(process=self.pid, timeout=1)
 
-        self.browser_window: WindowSpecification = win32_app.top_window()
+        for window in win32_app.windows():
+            if window.element_info.class_name == "Chrome_WidgetWin_1" and window.is_visible():
+                self.browser_window = window
+                break
+        else:
+            self.browser_window: WindowSpecification = win32_app.top_window()
+
+        for child in self.browser_window.iter_children():
+            if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
+                self.browser_window = child
+
         self.hwnd = self.browser_window.handle
         # Perform Window Checks
         self.browser_window.verify_actionable()
         assert self.browser_window.is_normal()
 
-        for child in self.browser_window.iter_children():
-            if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
-                self.browser_window = child
         return self.browser_window
+
+    def ensure_window(self) -> None:
+        if not self.browser_window.is_visible():
+            self.get_window()
 
     async def async_get_window(self) -> WindowSpecification:
         win32_app = application.Application(backend="win32")
         await self._loop.run_in_executor(None, lambda: win32_app.connect(process=self.pid, timeout=1))
 
-        self.browser_window: WindowSpecification = win32_app.top_window()
+        for window in win32_app.windows():
+            if window.element_info.class_name == "Chrome_WidgetWin_1" and window.is_visible():
+                self.browser_window = window
+                break
+        else:
+            self.browser_window: WindowSpecification = win32_app.top_window()
+
+        for child in self.browser_window.iter_children():
+            if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
+                self.browser_window = child
+
         self.hwnd = self.browser_window.handle
         # Perform Window Checks
         await self._loop.run_in_executor(None, lambda: self.browser_window.verify_actionable())
         assert self.browser_window.is_normal()
 
-        for child in self.browser_window.iter_children():
-            if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
-                self.browser_window = child
         return self.browser_window
 
     def down(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
+        self.ensure_window()
         self.browser_window.press_mouse(button=button, coords=(int(x * self.scale_factor), int(y * self.scale_factor)))
 
     def up(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
+        self.ensure_window()
         self.browser_window.release_mouse(button=button, coords=(int(x * self.scale_factor), int(y * self.scale_factor)))
 
     def move(self, x: int, y: int) -> None:
+        self.ensure_window()
         self.browser_window.move_mouse(coords=(int(x * self.scale_factor), int(y * self.scale_factor)), pressed="left")
 
     def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
+        self.ensure_window()
         self.browser_window.scroll(direction=direction, amount="line", count=int(amount * self.scale_factor))
 
     def send_keystrokes(self, text: str) -> None:
@@ -84,4 +106,5 @@ class WindowsBase:
 
             modified_text += key
 
+        self.ensure_window()
         self.browser_window.send_keystrokes(modified_text)

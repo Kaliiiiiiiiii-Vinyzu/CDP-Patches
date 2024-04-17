@@ -2,15 +2,15 @@ from typing import AsyncGenerator, Generator, List
 
 import pytest
 import pytest_asyncio
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium import webdriver as selenium_webdriver
-from selenium.webdriver.chrome.service import Service as SeleniumChromeService
 from playwright.async_api import Page as AsyncPage
 from playwright.async_api import async_playwright
 from playwright.sync_api import Page as SyncPage
 from playwright.sync_api import sync_playwright
+from selenium import webdriver as selenium_webdriver
+from selenium.webdriver.chrome.service import Service as SeleniumChromeService
 from selenium_driverless import webdriver as async_webdriver
 from selenium_driverless.sync import webdriver as sync_webdriver
+from webdriver_manager.chrome import ChromeDriverManager
 
 from cdp_patches.input import AsyncInput, SyncInput
 
@@ -139,14 +139,14 @@ def selenium_driver() -> Generator[selenium_webdriver.Chrome, None, None]:
         options.add_argument(flag)
 
     # disable logs & automation
-    options.add_experimental_option('excludeSwitches', ['enable-logging', "enable-automation"])
-    options.add_experimental_option('useAutomationExtension', False)
+    options.add_experimental_option("excludeSwitches", ["enable-logging", "enable-automation"])
+    options.add_experimental_option("useAutomationExtension", False)
     options.add_argument("--log-level=3")
 
     # start url at about:blank
     options.add_argument("about:blank")
 
-    with selenium_webdriver.Chrome(options,service=SeleniumChromeService(ChromeDriverManager().install())) as driver:
+    with selenium_webdriver.Chrome(options, service=SeleniumChromeService(ChromeDriverManager().install())) as driver:
         driver.sync_input = SyncInput(browser=driver)
         yield driver
 

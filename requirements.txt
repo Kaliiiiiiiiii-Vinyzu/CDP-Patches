@@ -1,5 +1,5 @@
 numpy==1.26.4
 pywinauto==0.6.8
-requests
-websockets
+requests==2.31.0
+websockets==12.0
 python-xlib==0.33

@@ -10,3 +10,4 @@ playwright==1.42.0
 selenium==4.18.1
 selenium_driverless==1.8.0.2
 twisted==24.3.0
+webdriver_manager==4.0.1

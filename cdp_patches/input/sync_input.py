@@ -45,10 +45,11 @@ class SyncInput:
     last_y: int = 0
     selective_modifiers_regex = re.compile(r"{[^{}]*}|.")
 
-    def __init__(self, pid: Optional[int] = None, browser: Optional[sync_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True,
-                 window_timeout: Optional[float] = 30.0) -> None:
+    def __init__(
+        self, pid: Optional[int] = None, browser: Optional[sync_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True, window_timeout: Optional[float] = 30.0
+    ) -> None:
         self._scale_factor = scale_factor or self._scale_factor
-        self.window_timeout = window_timeout
+        self.window_timeout = window_timeout or self.window_timeout
         self.emulate_behaviour = emulate_behaviour or self.emulate_behaviour
         self._move_lock = threading.Lock()
 
