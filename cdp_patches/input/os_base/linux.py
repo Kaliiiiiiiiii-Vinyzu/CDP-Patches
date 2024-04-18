@@ -117,7 +117,8 @@ class LinuxBase:
                     search_windows_by_pid(window.query_tree(), pid)
 
         search_windows_by_pid(self.display.screen().root.query_tree(), self.pid)
-        assert res_windows, WindowClosedException(f"No windows found for PID: {self.pid}")
+        if not res_windows:
+            raise WindowClosedException(f"No windows found for PID: {self.pid}")
 
         for window in res_windows:
             # Getting necessary window properties
@@ -158,7 +159,8 @@ class LinuxBase:
                     search_windows_by_pid(window.query_tree(), pid)
 
         await self._loop.run_in_executor(None, lambda: search_windows_by_pid(self.display.screen().root.query_tree(), self.pid))
-        assert res_windows, WindowClosedException(f"No windows found for PID: {self.pid}")
+        if not res_windows:
+            raise WindowClosedException(f"No windows found for PID: {self.pid}")
 
         for window in res_windows:
             # Getting necessary window properties
