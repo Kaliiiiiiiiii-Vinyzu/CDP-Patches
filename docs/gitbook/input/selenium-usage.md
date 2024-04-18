@@ -22,6 +22,12 @@ def get_locator_pos(locator: WebElement):
     x, y = x + width // 2, y + height // 2
     return x, y
 
+options = webdriver.ChromeOptions()
+# disable logs & automation
+options.add_experimental_option("excludeSwitches", ["enable-logging", "enable-automation"])
+options.add_experimental_option("useAutomationExtension", False)
+options.add_argument("--log-level=3")
+
 with webdriver.Chrome(...) as driver:
     sync_input = SyncInput(browser=driver)
 

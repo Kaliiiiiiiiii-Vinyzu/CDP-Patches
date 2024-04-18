@@ -24,6 +24,10 @@ if (is_bot && 1 >= outerHeight - innerHeight){ // fullscreen
 #### Chrome Tabs do have their own process with a process id (PID), but these can not be controlled using Input Events as they´re just engines.
 {% endhint %}
 
+{% hint style="warning" %}
+#### Pressing SHIFT or CAPSLOCK manually on Windows affects `input.type(text)` as well.&#x20;
+{% endhint %}
+
 ***
 
 **Owner**: [Vinyzu](https://github.com/Vinyzu/)\

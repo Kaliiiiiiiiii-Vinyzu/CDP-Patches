@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from selenium_driverless.types.by import By
 from selenium_driverless.types.webelement import WebElement
@@ -117,6 +119,7 @@ async def test_locators_hover(async_driver: Chrome, server: Server) -> None:
     x, y = await get_locator_pos(sync_locator)
     await async_driver.async_input.move(x, y)  # type: ignore[attr-defined]
 
+    await asyncio.sleep(0.5)
     assert await async_driver.execute_script("return document.querySelector('button:hover').id") == "button-12"
 
 
