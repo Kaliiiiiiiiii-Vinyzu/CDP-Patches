@@ -6,9 +6,12 @@ import time
 from typing import Any, List, Literal, Tuple
 
 from Xlib import X, display
+from Xlib.error import BadWindow
 from Xlib.ext.xtest import fake_input
 from Xlib.XK import string_to_keysym
 from Xlib.xobject.drawable import Window
+
+from cdp_patches.input.exceptions import WindowClosedException
 
 # Every Common Symbol on a QWERTY Keyboard, Source: https://github.com/python-xlib/python-xlib/blob/4e8bbf8fc4941e5da301a8b3db8d27e98de68666/Xlib/keysymdef/latin1.py
 # Dict Source: https://github.com/svenlr/swift-map/blob/main/mainloop.py#L459
@@ -114,7 +117,7 @@ class LinuxBase:
                     search_windows_by_pid(window.query_tree(), pid)
 
         search_windows_by_pid(self.display.screen().root.query_tree(), self.pid)
-        assert res_windows, ValueError(f"No windows found for PID: {self.pid}")
+        assert res_windows, WindowClosedException(f"No windows found for PID: {self.pid}")
 
         for window in res_windows:
             # Getting necessary window properties
@@ -130,7 +133,15 @@ class LinuxBase:
             self.browser_window = window
             return self.browser_window
 
-        raise ValueError(f"No windows found for PID: {self.pid}")
+        raise WindowClosedException(f"No windows found for PID: {self.pid}")
+
+    def ensure_window(self) -> None:
+        try:
+            # No Easy Visibility Check, well just check a random window attribute...
+            if not self.browser_window.get_wm_normal_hints().min_height:
+                self.get_window()
+        except BadWindow:
+            self.get_window()
 
     async def async_get_window(self) -> Any:
         name_atom = self.display.get_atom("WM_NAME", only_if_exists=True)
@@ -147,7 +158,7 @@ class LinuxBase:
                     search_windows_by_pid(window.query_tree(), pid)
 
         await self._loop.run_in_executor(None, lambda: search_windows_by_pid(self.display.screen().root.query_tree(), self.pid))
-        assert res_windows, ValueError(f"No windows found for PID: {self.pid}")
+        assert res_windows, WindowClosedException(f"No windows found for PID: {self.pid}")
 
         for window in res_windows:
             # Getting necessary window properties
@@ -163,7 +174,7 @@ class LinuxBase:
             self.browser_window = window
             return self.browser_window
 
-        raise ValueError(f"No windows found for PID: {self.pid}")
+        raise WindowClosedException(f"No windows found for PID: {self.pid}")
 
     def _offset_toolbar_height(self) -> Tuple[int, int]:
         # Get Window Location
@@ -206,16 +217,19 @@ class LinuxBase:
             return 5
 
     def down(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
+        self.ensure_window()
         self.move(x=x, y=y)
         fake_input(self.display, X.ButtonPress, self._translate_button(button))
         self.display.sync()
 
     def up(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
+        self.ensure_window()
         self.move(x=x, y=y)
         fake_input(self.display, X.ButtonRelease, self._translate_button(button))
         self.display.sync()
 
     def move(self, x: int, y: int) -> None:
+        self.ensure_window()
         offset_width, offset_height = self._offset_toolbar_height()
         x = int(x * self.scale_factor) + offset_width
         y = int(y * self.scale_factor) + offset_height
@@ -224,6 +238,7 @@ class LinuxBase:
         self.display.sync()
 
     def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
+        self.ensure_window()
         if direction in ("left", "right"):
             raise NotImplementedError("Scrolling horizontally is not supported on Linux.")
 
@@ -236,6 +251,7 @@ class LinuxBase:
             self.display.sync()
 
     def send_keystrokes(self, text: str) -> None:
+        self.ensure_window()
         selective_regex = re.compile(r"{[^{}]*}|.")  # Only for redundancy of windows implementations
         shift_keycode = self.display.keysym_to_keycode(0xFFE1)  # Shift Key (0xFFE1)
 

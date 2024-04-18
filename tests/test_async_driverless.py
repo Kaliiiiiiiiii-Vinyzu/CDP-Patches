@@ -5,10 +5,8 @@ from selenium_driverless.types.by import By
 from selenium_driverless.types.webelement import WebElement
 from selenium_driverless.webdriver import Chrome
 
-from tests.server import Server
-
 from cdp_patches.input.exceptions import WindowClosedException
-
+from tests.server import Server
 
 # from input import KeyboardCodes
 
@@ -160,11 +158,11 @@ async def test_keyboard_type_into_a_textarea(async_driver: Chrome) -> None:
 async def test_quit_exception(async_driver: Chrome) -> None:
     await async_driver.quit()
     with pytest.raises(WindowClosedException):
-        await async_driver.async_input.down("left", 100, 100,emulate_behaviour=False)
+        await async_driver.async_input.down("left", 100, 100, emulate_behaviour=False)
     with pytest.raises(WindowClosedException):
         await async_driver.async_input.up("left", 110, 110)
     with pytest.raises(WindowClosedException):
-        await async_driver.async_input.move(50, 50,emulate_behaviour=False)
+        await async_driver.async_input.move(50, 50, emulate_behaviour=False)
     with pytest.raises(WindowClosedException):
         await async_driver.async_input.scroll("up", 10)
     with pytest.raises(WindowClosedException):

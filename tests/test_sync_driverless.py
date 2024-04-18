@@ -3,10 +3,8 @@ from selenium_driverless.sync.webdriver import Chrome
 from selenium_driverless.types.by import By
 from selenium_driverless.types.webelement import WebElement
 
-from tests.server import Server
-
 from cdp_patches.input.exceptions import WindowClosedException
-
+from tests.server import Server
 
 # from input import KeyboardCodes
 

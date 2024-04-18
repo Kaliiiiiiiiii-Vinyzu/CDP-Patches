@@ -1,9 +1,8 @@
 import pytest
 from playwright.sync_api import Locator, Page
 
-from tests.server import Server
-
 from cdp_patches.input.exceptions import WindowClosedException
+from tests.server import Server
 
 # from input import KeyboardCodes
 
@@ -199,15 +198,20 @@ def test_keyboard_type_into_a_textarea(sync_page: Page) -> None:
 #             + " []"
 #         )
 
+
 def test_quit_exception(sync_page: Page) -> None:
     sync_page.close()
+    import time
+
+    time.sleep(2)
+
     with pytest.raises(WindowClosedException):
-        sync_page.sync_input.down("left", 100, 100, emulate_behaviour=False)
+        sync_page.sync_input.down("left", 100, 100, emulate_behaviour=False)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        sync_page.sync_input.up("left", 110, 110)
+        sync_page.sync_input.up("left", 110, 110)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        sync_page.sync_input.move(50, 50, emulate_behaviour=False)
+        sync_page.sync_input.move(50, 50, emulate_behaviour=False)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        sync_page.sync_input.scroll("up", 10)
+        sync_page.sync_input.scroll("up", 10)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        sync_page.sync_input.type("test")
+        sync_page.sync_input.type("test")  # type: ignore[attr-defined]

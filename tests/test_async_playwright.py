@@ -1,9 +1,8 @@
 import pytest
 from playwright.async_api import Locator, Page
 
-from tests.server import Server
-
 from cdp_patches.input.exceptions import WindowClosedException
+from tests.server import Server
 
 # from input import KeyboardCodes
 
@@ -207,16 +206,17 @@ async def test_keyboard_type_into_a_textarea(async_page: Page) -> None:
 #             + " []"
 #         )
 
+
 @pytest.mark.asyncio
 async def test_quit_exception(async_page: Page) -> None:
     await async_page.close()
     with pytest.raises(WindowClosedException):
-        await async_page.async_input.down("left", 100, 100,emulate_behaviour=False)
+        await async_page.async_input.down("left", 100, 100, emulate_behaviour=False)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        await async_page.async_input.up("left", 110, 110)
+        await async_page.async_input.up("left", 110, 110)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        await async_page.async_input.move(50, 50,emulate_behaviour=False)
+        await async_page.async_input.move(50, 50, emulate_behaviour=False)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        await async_page.async_input.scroll("up", 10)
+        await async_page.async_input.scroll("up", 10)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):
-        await async_page.async_input.type("test")
+        await async_page.async_input.type("test")  # type: ignore[attr-defined]
