@@ -3,6 +3,8 @@ from playwright.async_api import Locator, Page
 
 from tests.server import Server
 
+from cdp_patches.input.exceptions import WindowClosedException
+
 # from input import KeyboardCodes
 
 
@@ -204,3 +206,17 @@ async def test_keyboard_type_into_a_textarea(async_page: Page) -> None:
 #             + js_key[1]
 #             + " []"
 #         )
+
+@pytest.mark.asyncio
+async def test_quit_exception(async_page: Page) -> None:
+    await async_page.close()
+    with pytest.raises(WindowClosedException):
+        await async_page.async_input.down("left", 100, 100,emulate_behaviour=False)
+    with pytest.raises(WindowClosedException):
+        await async_page.async_input.up("left", 110, 110)
+    with pytest.raises(WindowClosedException):
+        await async_page.async_input.move(50, 50,emulate_behaviour=False)
+    with pytest.raises(WindowClosedException):
+        await async_page.async_input.scroll("up", 10)
+    with pytest.raises(WindowClosedException):
+        await async_page.async_input.type("test")

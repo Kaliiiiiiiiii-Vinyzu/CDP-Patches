@@ -6,13 +6,23 @@ from typing import Literal, Union
 
 from pywinauto import application, timings
 from pywinauto.application import WindowSpecification
-from pywinauto.controls.hwndwrapper import HwndWrapper
+from pywinauto.controls.hwndwrapper import HwndWrapper, InvalidWindowHandle
+from pywinauto.base_wrapper import ElementNotVisible
+
+from cdp_patches.input.exceptions import WindowClosedException
 
 timings.Timings.fast()
 timings.TimeConfig._timings["sendmessagetimeout_timeout"] = 0
 timings.TimeConfig._timings["after_click_wait"] = 0
+timings.TimeConfig._timings['after_clickinput_wait'] = 0
+timings.TimeConfig._timings['after_sendkeys_key_wait'] = 0
+# don't block asyncio
+timings.TimeConfig._timings['scroll_step_wait'] = 0.01
+timings.TimeConfig._timings['window_find_timeout'] = 0.01
+timings.TimeConfig._timings['exists_timeout'] = 0.01
 
-warnings.filterwarnings("ignore", category=UserWarning, message="32-bit application should be automated using 32-bit Python (you use 64-bit Python)")
+warnings.filterwarnings("ignore", category=UserWarning,
+                        message="32-bit application should be automated using 32-bit Python (you use 64-bit Python)")
 
 
 class WindowsBase:
@@ -21,6 +31,7 @@ class WindowsBase:
     pid: int
     scale_factor: float = 1.0
     toolbar_height: int = 0
+    win32_app: application.Application = None
 
     def __init__(self, pid: int, scale_factor: float) -> None:
         self.pid = pid
@@ -31,16 +42,29 @@ class WindowsBase:
         windows_scale_factor = ctypes.windll.shcore.GetScaleFactorForDevice(0) / 100
         self.scale_factor *= windows_scale_factor
 
-    def get_window(self) -> WindowSpecification:
-        win32_app = application.Application(backend="win32")
-        win32_app.connect(process=self.pid, timeout=1)
-
-        for window in win32_app.windows():
+    def get_window(self, timeout: float = 1, ) -> WindowSpecification:
+        if self.win32_app is None:
+            # save time
+            self.win32_app = application.Application(backend="win32")
+            self.win32_app.connect(process=self.pid, timeout=timeout)
+        try:
+            windows = self.win32_app.windows()
+        except InvalidWindowHandle:
+            raise WindowClosedException()
+        if not windows:
+            raise WindowClosedException()
+        for window in windows:
             if window.element_info.class_name == "Chrome_WidgetWin_1" and window.is_visible():
                 self.browser_window = window
                 break
         else:
-            self.browser_window: WindowSpecification = win32_app.top_window()
+            # win32_app.top_window(), but without timeout
+            criteria = {'backend': self.win32_app.backend.name}
+            if windows[0].handle:
+                criteria['handle'] = windows[0].handle
+            else:
+                criteria['name'] = windows[0].name
+            self.browser_window = WindowSpecification(criteria, allow_magic_lookup=self.win32_app.allow_magic_lookup)
 
         for child in self.browser_window.iter_children():
             if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
@@ -48,25 +72,43 @@ class WindowsBase:
 
         self.hwnd = self.browser_window.handle
         # Perform Window Checks
-        self.browser_window.verify_actionable()
-        assert self.browser_window.is_normal()
+        try:
+            self.browser_window.verify_actionable()
+        except ElementNotVisible:
+            raise WindowClosedException()
+        if not self.browser_window.is_normal():
+            raise WindowClosedException()
 
         return self.browser_window
 
     def ensure_window(self) -> None:
-        if not self.browser_window.is_visible():
+        try:
+            if not self.browser_window.is_visible():
+                self.get_window()
+        except InvalidWindowHandle:
             self.get_window()
 
-    async def async_get_window(self) -> WindowSpecification:
-        win32_app = application.Application(backend="win32")
-        await self._loop.run_in_executor(None, lambda: win32_app.connect(process=self.pid, timeout=1))
+    async def async_get_window(self, timeout: float = 1) -> WindowSpecification:
+        if self.win32_app is None:
+            # save time
+            self.win32_app = application.Application(backend="win32")
+            await self._loop.run_in_executor(None, lambda: self.win32_app.connect(process=self.pid, timeout=timeout))
 
-        for window in win32_app.windows():
+        windows = self.win32_app.windows()
+        if not windows:
+            raise WindowClosedException()
+        for window in windows:
             if window.element_info.class_name == "Chrome_WidgetWin_1" and window.is_visible():
                 self.browser_window = window
                 break
         else:
-            self.browser_window: WindowSpecification = win32_app.top_window()
+            # top window, but without timeout
+            criteria = {'backend': self.win32_app.backend.name}
+            if windows[0].handle:
+                criteria['handle'] = windows[0].handle
+            else:
+                criteria['name'] = windows[0].name
+            self.browser_window = WindowSpecification(criteria, allow_magic_lookup=self.win32_app.allow_magic_lookup)
 
         for child in self.browser_window.iter_children():
             if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
@@ -74,8 +116,12 @@ class WindowsBase:
 
         self.hwnd = self.browser_window.handle
         # Perform Window Checks
-        await self._loop.run_in_executor(None, lambda: self.browser_window.verify_actionable())
-        assert self.browser_window.is_normal()
+        try:
+            self.browser_window.verify_actionable()
+        except ElementNotVisible:
+            raise WindowClosedException()
+        if not self.browser_window.is_normal():
+            raise WindowClosedException()
 
         return self.browser_window
 

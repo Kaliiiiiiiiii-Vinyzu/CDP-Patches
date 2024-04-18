@@ -1,8 +1,11 @@
+import pytest
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 
 from tests.server import Server
+
+from cdp_patches.input.exceptions import WindowClosedException
 
 
 def get_locator_pos(locator: WebElement):
@@ -139,3 +142,17 @@ def test_keyboard_type_into_a_textarea(selenium_driver: Chrome) -> None:
 
     selenium_driver.sync_input.type(text)  # type: ignore[attr-defined]
     assert selenium_driver.execute_script('return document.querySelector("textarea").value') == text
+
+
+def test_quit_exception(selenium_driver: Chrome) -> None:
+    selenium_driver.quit()
+    with pytest.raises(WindowClosedException):
+        selenium_driver.sync_input.down("left", 100, 100, emulate_behaviour=False)
+    with pytest.raises(WindowClosedException):
+        selenium_driver.sync_input.up("left", 110, 110)
+    with pytest.raises(WindowClosedException):
+        selenium_driver.sync_input.move(50, 50, emulate_behaviour=False)
+    with pytest.raises(WindowClosedException):
+        selenium_driver.sync_input.scroll("up", 10)
+    with pytest.raises(WindowClosedException):
+        selenium_driver.sync_input.type("test")

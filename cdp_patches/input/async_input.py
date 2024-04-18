@@ -14,22 +14,23 @@ else:
     TypeAlias = "TypeAlias"  # type: ignore[assignment]
 
 from cdp_patches import is_windows
+from cdp_patches.input.exceptions import WindowClosedException
 
 if is_windows:
     from pywinauto.application import ProcessNotFoundError
-    from pywinauto.base_wrapper import ElementNotEnabled, ElementNotVisible
+    from pywinauto.base_wrapper import ElementNotEnabled
 
     from cdp_patches.input.os_base.windows import WindowsBase  # type: ignore[assignment]
 
     LinuxBase: TypeAlias = WindowsBase  # type: ignore[no-redef]
     InputBase = WindowsBase  # type: ignore
-    WindowErrors = (AssertionError, ValueError, ElementNotVisible, ElementNotEnabled, ProcessNotFoundError)  # type: ignore[assignment]
+    WindowErrors = (ValueError, ElementNotEnabled, ProcessNotFoundError, WindowClosedException)  # type: ignore[assignment]
 else:
     from cdp_patches.input.os_base.linux import LinuxBase  # type: ignore[assignment]
 
     WindowsBase: TypeAlias = LinuxBase  # type: ignore[no-redef]
     InputBase = LinuxBase  # type: ignore
-    WindowErrors = (AssertionError, ValueError)  # type: ignore[assignment]
+    WindowErrors = (AssertionError, ValueError, WindowClosedException)  # type: ignore[assignment]
 
 from .browsers import DriverlessAsyncChrome, async_browsers, get_async_browser_pid, get_async_scale_factor
 from .mouse_trajectory import HumanizeMouseTrajectory
