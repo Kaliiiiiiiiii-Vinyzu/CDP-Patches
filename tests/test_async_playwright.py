@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from playwright.async_api import Locator, Page
 
@@ -210,6 +212,8 @@ async def test_keyboard_type_into_a_textarea(async_page: Page) -> None:
 @pytest.mark.asyncio
 async def test_quit_exception(async_page: Page) -> None:
     await async_page.close()
+    await asyncio.sleep(5)
+
     with pytest.raises(WindowClosedException):
         await async_page.async_input.down("left", 100, 100, emulate_behaviour=False)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):

@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from selenium.webdriver import Chrome
 from selenium.webdriver.common.by import By
@@ -40,6 +42,7 @@ def test_input_leak(selenium_driver: Chrome, server: Server) -> None:
     x, y = get_locator_pos(sync_locator)
     selenium_driver.sync_input.click("left", x, y)  # type: ignore[attr-defined]
 
+    time.sleep(2)
     is_leaking = selenium_driver.execute_async_script("window.is_leaking.then(arguments[arguments.length - 1])")
     assert not is_leaking
 
@@ -145,6 +148,8 @@ def test_keyboard_type_into_a_textarea(selenium_driver: Chrome) -> None:
 
 def test_quit_exception(selenium_driver: Chrome) -> None:
     selenium_driver.quit()
+    time.sleep(5)
+
     with pytest.raises(WindowClosedException):
         selenium_driver.sync_input.down("left", 100, 100, emulate_behaviour=False)  # type: ignore[attr-defined]
     with pytest.raises(WindowClosedException):

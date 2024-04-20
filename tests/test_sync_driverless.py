@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from selenium_driverless.sync.webdriver import Chrome
 from selenium_driverless.types.by import By
@@ -147,6 +149,8 @@ def test_keyboard_type_into_a_textarea(sync_driver: Chrome) -> None:
 
 def test_quit_exception(sync_driver: Chrome) -> None:
     sync_driver.quit()
+    time.sleep(5)
+
     with pytest.raises(WindowClosedException):
         sync_driver.sync_input.down("left", 100, 100, emulate_behaviour=False)
     with pytest.raises(WindowClosedException):

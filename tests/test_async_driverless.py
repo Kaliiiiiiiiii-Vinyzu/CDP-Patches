@@ -157,6 +157,8 @@ async def test_keyboard_type_into_a_textarea(async_driver: Chrome) -> None:
 @pytest.mark.asyncio
 async def test_quit_exception(async_driver: Chrome) -> None:
     await async_driver.quit()
+    await asyncio.sleep(5)
+
     with pytest.raises(WindowClosedException):
         await async_driver.async_input.down("left", 100, 100, emulate_behaviour=False)
     with pytest.raises(WindowClosedException):

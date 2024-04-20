@@ -1,3 +1,5 @@
+import time
+
 import pytest
 from playwright.sync_api import Locator, Page
 
@@ -201,9 +203,7 @@ def test_keyboard_type_into_a_textarea(sync_page: Page) -> None:
 
 def test_quit_exception(sync_page: Page) -> None:
     sync_page.close()
-    import time
-
-    time.sleep(2)
+    time.sleep(5)
 
     with pytest.raises(WindowClosedException):
         sync_page.sync_input.down("left", 100, 100, emulate_behaviour=False)  # type: ignore[attr-defined]

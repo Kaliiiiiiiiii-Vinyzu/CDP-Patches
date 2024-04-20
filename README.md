@@ -17,14 +17,14 @@
         <img alt="PyPI" src="https://static.pepy.tech/badge/cdp-patches">
     </a>
     <br>
-    <a href="https://github.com/ambv/black">
+    <a href="https://github.com/Kaliiiiiiiiii-Vinyzu/CDP-Patches/actions">
         <img src="https://github.com/Kaliiiiiiiiii-Vinyzu/CDP-Patches/actions/workflows/ci.yml/badge.svg">
     </a>
     <a href="http://mypy-lang.org">
         <img src="http://www.mypy-lang.org/static/mypy_badge.svg">
     </a>
     <a href="https://github.com/PyCQA/flake8">
-        <img src="https://img.shields.io/badge/flake8-passing-green.svg">
+        <img src="https://img.shields.io/badge/code%20quality-Flake8-green.svg">
     </a>
     <a href="https://github.com/ambv/black">
         <img src="https://img.shields.io/badge/code%20style-black-black.svg">
