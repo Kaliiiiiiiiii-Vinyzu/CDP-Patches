@@ -72,7 +72,6 @@ async def main():
         locator = await driver.find_element(By.XPATH, "//button")
         x, y = await get_locator_pos(locator)
         # Click Coords => Click Button
-        await driver.find_element(By.XPATH, "//button")
         await async_input.click("left", x, y)
 
 asyncio.run(main())
