@@ -1,6 +1,7 @@
 import platform
+import warnings
 
-VERSION = 1.0
+VERSION = "1.1"
 
 system_name = platform.system()
 if system_name == "Windows":
@@ -8,6 +9,6 @@ if system_name == "Windows":
 elif system_name == "Linux":
     is_windows = False
 else:
-    raise SystemError("Unknown system (You´re probably using MacOS, which is currently not supported).")
+    warnings.warn("Unknown system (You´re probably using MacOS, which is currently not supported).", RuntimeWarning)
 
 __all__ = ["VERSION", "is_windows"]

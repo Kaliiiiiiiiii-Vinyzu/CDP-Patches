@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import platform
 import random
 import re
 import sys
 import time
-import warnings
 from typing import Any, Generator, Literal, Optional, Union
 
 if sys.version_info.minor >= 10:
@@ -51,6 +51,9 @@ class AsyncInput:
     def __init__(
         self, pid: Optional[int] = None, browser: Optional[async_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True, window_timeout: Optional[float] = 30.0
     ) -> None:
+        if platform.system() not in ('Windows', 'Linux'):
+            raise SystemError("Unknown system (You´re probably using MacOS, which is currently not supported).")
+
         self.pid = pid
         self.browser = browser
         self.window_timeout = window_timeout or self.window_timeout
@@ -163,7 +166,6 @@ class AsyncInput:
             self.last_x, self.last_y = x, y
 
     async def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
-        warnings.warn("Scrolling using CDP-Patches is discouraged as Scroll Inputs dont leak the CDP Domain.", UserWarning)
         self._base.scroll(direction=direction, amount=amount)
 
     async def type(self, text: str, fill: Optional[bool] = False, timeout: Optional[float] = None) -> None:
