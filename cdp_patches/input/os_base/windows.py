@@ -2,7 +2,7 @@ import asyncio
 import ctypes
 import re
 import warnings
-from typing import Literal, Union
+from typing import Literal, Union, List
 
 from pywinauto import application, timings
 from pywinauto.application import WindowSpecification
@@ -22,6 +22,18 @@ timings.TimeConfig._timings["window_find_timeout"] = 0.01
 timings.TimeConfig._timings["exists_timeout"] = 0.01
 
 warnings.filterwarnings("ignore", category=UserWarning, message="32-bit application should be automated using 32-bit Python (you use 64-bit Python)")
+
+
+def get_top_window(app:application.Application, windows=List[Union[WindowSpecification, HwndWrapper]]) -> WindowSpecification:
+    if windows is None:
+        windows = app
+    # win32_app.top_window(), but without timeout
+    criteria = {"backend": app.backend.name}
+    if windows[0].handle:
+        criteria["handle"] = windows[0].handle
+    else:
+        criteria["name"] = windows[0].name
+    return WindowSpecification(criteria, allow_magic_lookup=app.allow_magic_lookup)
 
 
 class WindowsBase:
@@ -60,13 +72,7 @@ class WindowsBase:
                 self.browser_window = window
                 break
         else:
-            # win32_app.top_window(), but without timeout
-            criteria = {"backend": self.win32_app.backend.name}
-            if windows[0].handle:
-                criteria["handle"] = windows[0].handle
-            else:
-                criteria["name"] = windows[0].name
-            self.browser_window = WindowSpecification(criteria, allow_magic_lookup=self.win32_app.allow_magic_lookup)
+            self.browser_window = get_top_window(self.win32_app, windows)
 
         for child in self.browser_window.iter_children():
             if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":
@@ -104,13 +110,7 @@ class WindowsBase:
                 self.browser_window = window
                 break
         else:
-            # top window, but without timeout
-            criteria = {"backend": self.win32_app.backend.name}
-            if windows[0].handle:
-                criteria["handle"] = windows[0].handle
-            else:
-                criteria["name"] = windows[0].name
-            self.browser_window = WindowSpecification(criteria, allow_magic_lookup=self.win32_app.allow_magic_lookup)
+            self.browser_window = get_top_window(self.win32_app, windows)
 
         for child in self.browser_window.iter_children():
             if child.element_info.class_name == "Chrome_RenderWidgetHostHWND":

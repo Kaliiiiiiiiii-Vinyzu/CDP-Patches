@@ -112,6 +112,7 @@ def test_locators_hover(selenium_driver: Chrome, server: Server) -> None:
     x, y = get_locator_pos(sync_locator)
     selenium_driver.sync_input.move(x, y)  # type: ignore[attr-defined]
 
+    time.sleep(0.5)
     assert selenium_driver.execute_script("return document.querySelector('button:hover').id") == "button-12"
 
 

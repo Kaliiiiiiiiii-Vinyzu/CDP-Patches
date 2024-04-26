@@ -82,10 +82,10 @@ async def test_locators_hover(async_page: Page, server: Server) -> None:
     x, y = await get_locator_pos(button)
     await async_page.async_input.move(x, y)  # type: ignore[attr-defined]
 
+    await asyncio.sleep(0.5)
     assert await async_page.evaluate("document.querySelector('button:hover').id") == "button-12"
 
 
-@pytest.mark.skip(reason="Scrolling is discouraged")
 @pytest.mark.asyncio
 async def test_scroll(async_page: Page, server: Server) -> None:
     await async_page.goto(server.PREFIX + "/offscreenbuttons.html")

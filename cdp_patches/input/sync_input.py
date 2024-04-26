@@ -158,7 +158,6 @@ class SyncInput:
             self.last_x, self.last_y = x, y
 
     def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
-        warnings.warn("Scrolling using CDP-Patches is discouraged as Scroll Inputs dont leak the CDP Domain.", UserWarning)
         self._base.scroll(direction=direction, amount=amount)
 
     def type(self, text: str, fill: Optional[bool] = False, timeout: Optional[float] = None) -> None:
