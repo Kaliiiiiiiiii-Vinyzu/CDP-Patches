@@ -40,29 +40,34 @@ import asyncio
 from playwright.async_api import async_playwright, Locator
 from cdp_patches.input import AsyncInput
 
+
 # Locator Position Helper
 async def get_locator_pos(locator: Locator):
     bounding_box = await locator.bounding_box()
     assert bounding_box
 
+
     x, y, width, height = bounding_box.get("x"), bounding_box.get("y"), bounding_box.get("width"), bounding_box.get("height")
+
     assert x and y and width and height
 
     x, y = x + width // 2, y + height // 2
     return x, y
+
 
 async def main():
     async with async_playwright() as playwright:
         browser = await playwright.chromium.launch()
         page = await browser.new_page()
         async_input = await AsyncInput(browser=browser)  # Also works with Contexts
-    
+
         # Example: Click Button
         # Find Button Coords
         locator = page.locator("button")
         x, y = await get_locator_pos(locator)
         # Click Coords => Click Button
         await async_input.click("left", x, y)
+
 
 asyncio.run(main())
 ```

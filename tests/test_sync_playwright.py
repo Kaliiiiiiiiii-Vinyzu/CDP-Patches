@@ -78,10 +78,10 @@ def test_locators_hover(sync_page: Page, server: Server) -> None:
     x, y = get_locator_pos(button)
     sync_page.sync_input.move(x, y)  # type: ignore[attr-defined]
 
+    time.sleep(0.5)
     assert sync_page.evaluate("document.querySelector('button:hover').id") == "button-12"
 
 
-@pytest.mark.skip(reason="Scrolling is discouraged")
 def test_scroll(sync_page: Page, server: Server) -> None:
     sync_page.goto(server.PREFIX + "/offscreenbuttons.html")
     for i in range(11):
