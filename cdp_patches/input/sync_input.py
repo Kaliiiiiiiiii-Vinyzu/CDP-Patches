@@ -50,7 +50,7 @@ class SyncInput:
     def __init__(
         self, pid: Optional[int] = None, browser: Optional[sync_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True, window_timeout: Optional[float] = 30.0
     ) -> None:
-        if platform.system() not in ('Windows', 'Linux'):
+        if platform.system() not in ("Windows", "Linux"):
             raise SystemError("Unknown system (You´re probably using MacOS, which is currently not supported).")
 
         self._scale_factor = scale_factor or self._scale_factor

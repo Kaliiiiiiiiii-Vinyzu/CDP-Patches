@@ -12,17 +12,10 @@ from tests.server import Server
 
 
 async def get_locator_pos(locator: WebElement):
-    location = await locator.location
-    size = await locator.size
-    assert location, size
-
-    x, y, width, height = location.get("x"), location.get("y"), size.get("width"), size.get("height")
-    assert x and y and width and height
-
-    x, y = x + width // 2, y + height // 2
-    return x, y
+    return await locator.mid_location()
 
 
+@pytest.mark.skip("Currently bugged by Driverless. Skipping until Update.")
 @pytest.mark.asyncio
 async def test_input_leak(async_driver: Chrome, server: Server) -> None:
     await async_driver.get(server.PREFIX + "/input/button.html")

@@ -12,15 +12,7 @@ from tests.server import Server
 
 
 def get_locator_pos(locator: WebElement):
-    location = locator.location
-    size = locator.size
-    assert location, size
-
-    x, y, width, height = location.get("x"), location.get("y"), size.get("width"), size.get("height")
-    assert x and y and width and height
-
-    x, y = x + width // 2, y + height // 2
-    return x, y
+    return locator.mid_location()
 
 
 def test_input_leak(sync_driver: Chrome, server: Server) -> None:

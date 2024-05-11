@@ -57,6 +57,8 @@ pip install cdp-patches[automation_linting]
 ###  Concept: Input Domain Leaks
 Bypass CDP Leaks in [Input](https://chromedevtools.github.io/devtools-protocol/tot/Input/) domains
 
+[![Brotector Banner](https://github.com/Kaliiiiiiiiii-Vinyzu/CDP-Patches/assets/50874994/fdbe831d-cb39-479d-ba0a-fea7f29fe90a)](https://github.com/kaliiiiiiiiii/brotector)
+
 For an interaction event `e`, the page coordinates won't ever equal the screen coordinates, unless Chrome is in fullscreen.
 However, all `CDP` input commands just set it the same by default (see [crbug#1477537](https://bugs.chromium.org/p/chromium/issues/detail?id=1477537)).
 ```js
