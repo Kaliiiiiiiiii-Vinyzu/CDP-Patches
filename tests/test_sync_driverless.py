@@ -12,7 +12,7 @@ from tests.server import Server
 
 
 def get_locator_pos(locator: WebElement):
-    return locator.mid_location()
+    return locator.mid_location(spread_a=0.5, spread_b=0.5, border=0.1)
 
 
 def test_input_leak(sync_driver: Chrome, server: Server) -> None:

@@ -12,7 +12,7 @@ from tests.server import Server
 
 
 async def get_locator_pos(locator: WebElement):
-    return await locator.mid_location()
+    return await locator.mid_location(spread_a=0.5, spread_b=0.5, border=0.1)
 
 
 @pytest.mark.skip("Currently bugged by Driverless. Skipping until Update.")
