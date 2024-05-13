@@ -27,6 +27,7 @@ async def get_locator_pos(locator: WebElement):
 @pytest.mark.asyncio
 async def test_input_leak(async_driver: Chrome, server: Server) -> None:
     await async_driver.get(server.PREFIX + "/input/button.html")
+    await async_driver.sleep(1)
     await async_driver.execute_script(
         """
         const click_elem = document.querySelector("button")
@@ -53,6 +54,7 @@ async def test_input_leak(async_driver: Chrome, server: Server) -> None:
 @pytest.mark.asyncio
 async def test_click_the_button(async_driver: Chrome, server: Server) -> None:
     await async_driver.get(server.PREFIX + "/input/button.html")
+    await async_driver.sleep(1)
     sync_locator = await async_driver.find_element(By.XPATH, "//button")
     x, y = await get_locator_pos(sync_locator)
     await async_driver.async_input.click("left", x, y)  # type: ignore[attr-defined]
@@ -62,6 +64,7 @@ async def test_click_the_button(async_driver: Chrome, server: Server) -> None:
 @pytest.mark.asyncio
 async def test_double_click_the_button(async_driver: Chrome, server: Server) -> None:
     await async_driver.get(server.PREFIX + "/input/button.html")
+    await async_driver.sleep(1)
     await async_driver.execute_script(
         """window.double = false;
             button = document.querySelector('button');
@@ -112,6 +115,7 @@ async def test_locators_hover(async_driver: Chrome, server: Server) -> None:
     # sync_page.add_init_script(x)
 
     await async_driver.get(server.PREFIX + "/input/scrollable.html")
+    await async_driver.sleep(1)
     await async_driver.async_input.move(500, 100)  # type: ignore[attr-defined]
 
     sync_locator = await async_driver.find_element(By.ID, "button-12")
@@ -125,6 +129,7 @@ async def test_locators_hover(async_driver: Chrome, server: Server) -> None:
 @pytest.mark.asyncio
 async def test_fill_input(async_driver: Chrome, server: Server) -> None:
     await async_driver.get(server.PREFIX + "/input/textarea.html")
+    await async_driver.sleep(1)
     sync_locator = await async_driver.find_element(By.XPATH, "//input")
     assert sync_locator
 
@@ -143,6 +148,7 @@ async def test_keyboard_type_into_a_textarea(async_driver: Chrome) -> None:
             textarea.focus();
         """
     )
+    await async_driver.sleep(1)
     text = "Hello world. I +am  the %text that was typed!"
 
     sync_locator = await async_driver.find_element(By.XPATH, "//textarea")

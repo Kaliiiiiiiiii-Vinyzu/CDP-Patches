@@ -25,6 +25,7 @@ def get_locator_pos(locator: WebElement):
 
 def test_input_leak(sync_driver: Chrome, server: Server) -> None:
     sync_driver.get(server.PREFIX + "/input/button.html")
+    sync_driver.sleep(1)
     sync_driver.execute_script(
         """
         const click_elem = document.querySelector("button")
@@ -50,6 +51,7 @@ def test_input_leak(sync_driver: Chrome, server: Server) -> None:
 
 def test_click_the_button(sync_driver: Chrome, server: Server) -> None:
     sync_driver.get(server.PREFIX + "/input/button.html")
+    sync_driver.sleep(1)
     sync_locator = sync_driver.find_element(By.XPATH, "//button")
     x, y = get_locator_pos(sync_locator)
     sync_driver.sync_input.click("left", x, y)  # type: ignore[attr-defined]
@@ -58,6 +60,7 @@ def test_click_the_button(sync_driver: Chrome, server: Server) -> None:
 
 def test_double_click_the_button(sync_driver: Chrome, server: Server) -> None:
     sync_driver.get(server.PREFIX + "/input/button.html")
+    sync_driver.sleep(1)
     sync_driver.execute_script(
         """window.double = false;
             button = document.querySelector('button');
@@ -107,6 +110,7 @@ def test_locators_hover(sync_driver: Chrome, server: Server) -> None:
     # sync_page.add_init_script(x)
 
     sync_driver.get(server.PREFIX + "/input/scrollable.html")
+    sync_driver.sleep(1)
     sync_driver.sync_input.move(500, 100)  # type: ignore[attr-defined]
 
     sync_locator = sync_driver.find_element(By.ID, "button-12")
@@ -119,6 +123,7 @@ def test_locators_hover(sync_driver: Chrome, server: Server) -> None:
 
 def test_fill_input(sync_driver: Chrome, server: Server) -> None:
     sync_driver.get(server.PREFIX + "/input/textarea.html")
+    sync_driver.sleep(1)
     sync_locator = sync_driver.find_element(By.XPATH, "//input")
     assert sync_locator
 
@@ -136,6 +141,7 @@ def test_keyboard_type_into_a_textarea(sync_driver: Chrome) -> None:
             textarea.focus();
         """
     )
+    sync_driver.sleep(1)
     text = "Hello world. I +am  the %text that was typed!"
 
     sync_locator = sync_driver.find_element(By.XPATH, "//textarea")
