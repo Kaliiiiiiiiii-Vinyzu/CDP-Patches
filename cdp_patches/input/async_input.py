@@ -14,6 +14,7 @@ else:
     TypeAlias = "TypeAlias"  # type: ignore[assignment]
 
 from cdp_patches import is_windows
+from cdp_patches.input.utils import _mk_kwargs
 from cdp_patches.input.exceptions import WindowClosedException
 
 if is_windows:
@@ -113,43 +114,46 @@ class AsyncInput:
 
         await asyncio.sleep(timeout)
 
-    async def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
+    async def click(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float],pressed:str=None, emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
-        await self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout)
+        await self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout,pressed=pressed)
         if self.emulate_behaviour and emulate_behaviour:
             await self._sleep_timeout(timeout=timeout)
-        await self.up(button=button, x=x, y=y)
+        await self.up(button=button, x=x, y=y,pressed=pressed)
         self.last_x, self.last_y = x, y
 
     async def double_click(
-        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None
+        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float],pressed:str=None, emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None
     ) -> None:
         x, y = int(x), int(y)
 
-        await self.click(button=button, x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour)
+        await self.click(button=button, x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour, pressed=pressed)
         if self.emulate_behaviour and emulate_behaviour:
             await self._sleep_timeout(random.uniform(0.14, 0.21))
             # await self._sleep_timeout(timeout=timeout)
-        await self.click(button=button, x=x, y=y, emulate_behaviour=False, timeout=timeout)
+        await self.click(button=button, x=x, y=y, emulate_behaviour=False, timeout=timeout, pressed=pressed)
 
         self.last_x, self.last_y = x, y
 
-    async def down(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
+    async def down(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed:str=None, emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
         x, y = int(x), int(y)
 
         if self.emulate_behaviour and emulate_behaviour:
-            await self.move(x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour)
-        self._base.down(button=button, x=x, y=y)
+            await self.move(x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour, pressed=pressed)
+        kwargs = _mk_kwargs(pressed)
+        self._base.down(button=button, x=x, y=y, **kwargs)
         self.last_x, self.last_y = x, y
 
-    async def up(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float]) -> None:
+    async def up(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float],pressed:str=None) -> None:
         x, y = int(x), int(y)
 
-        self._base.up(button=button, x=x, y=y)
+        kwargs = _mk_kwargs(pressed)
+        self._base.up(button=button, x=x, y=y, **kwargs)
         self.last_x, self.last_y = x, y
 
-    async def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
+    async def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None, pressed:str=None) -> None:
+        kwargs = _mk_kwargs(pressed)
         async with self._move_lock:
             x, y = int(x), int(y)
 
@@ -158,11 +162,11 @@ class AsyncInput:
 
                 # Move Mouse to new random locations
                 for i, (human_x, human_y) in enumerate(humanized_points.points):
-                    self._base.move(x=int(human_x), y=int(human_y))
+                    self._base.move(x=int(human_x), y=int(human_y), **kwargs)
                     await self._sleep_timeout(timeout=timeout)
 
             else:
-                self._base.move(x=x, y=y)
+                self._base.move(x=x, y=y, **kwargs)
             self.last_x, self.last_y = x, y
 
     async def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:

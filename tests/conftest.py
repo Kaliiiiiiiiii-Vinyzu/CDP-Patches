@@ -1,16 +1,37 @@
-from typing import AsyncGenerator, Generator, List
+from typing import AsyncGenerator, Generator
+from .utils import find_chrome_executable, random_port
+import subprocess
+import tempfile
+import signal
+import os
 
 import pytest
 import pytest_asyncio
-from playwright.async_api import Page as AsyncPage
-from playwright.async_api import async_playwright
-from playwright.sync_api import Page as SyncPage
-from playwright.sync_api import sync_playwright
-from selenium import webdriver as selenium_webdriver
-from selenium.webdriver.chrome.service import Service as SeleniumChromeService
-from selenium_driverless import webdriver as async_webdriver
-from selenium_driverless.sync import webdriver as sync_webdriver
-from webdriver_manager.chrome import ChromeDriverManager
+from typing import List, Type
+
+# support testing without having playwright installed
+try:
+    from playwright.async_api import Page as AsyncPage
+    from playwright.async_api import async_playwright
+    from playwright.sync_api import Page as SyncPage
+    from playwright.sync_api import sync_playwright
+    from selenium import webdriver as selenium_webdriver
+    from selenium.webdriver.chrome.service import Service as SeleniumChromeService
+    from selenium_driverless import webdriver as async_webdriver
+    from selenium_driverless.sync import webdriver as sync_webdriver
+    from webdriver_manager.chrome import ChromeDriverManager
+except ImportError:
+    AsyncBrowser: Type["AsyncBrowser"] = "AsyncBrowser"  # type: ignore[no-redef]
+    AsyncContext: Type["AsyncContext"] = "AsyncContext"  # type: ignore[no-redef]
+    SyncBrowser: Type["SyncBrowser"] = "SyncBrowser"  # type: ignore[no-redef]
+    SyncContext: Type["SyncContext"] = "SyncContext"  # type: ignore[no-redef]
+    SyncPage: Type["SyncPage"] = "SyncPage"  # type: ignore[no-redef]
+    AsyncPage: Type["AsyncPage"] = "AsyncPage"  # type: ignore[no-redef]
+
+    ChromeWebdriver: Type["ChromeWebdriver"] = "ChromeWebdriver"  # type: ignore[no-redef]
+    sync_webdriver = async_webdriver = selenium_webdriver = type("webdriver", (object,), {
+        "Chrome": ChromeWebdriver
+    })
 
 from cdp_patches.input import AsyncInput, SyncInput
 
@@ -160,3 +181,25 @@ async def async_driver() -> AsyncGenerator[async_webdriver.Chrome, None]:
     async with async_webdriver.Chrome(options) as driver:
         driver.async_input = await AsyncInput(browser=driver)
         yield driver
+
+
+@pytest.fixture
+def chrome_proc() -> Generator[subprocess.Popen, None, None]:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tempdir:
+        path = find_chrome_executable()
+        proc = subprocess.Popen([path, f"--remote-debugging-port={random_port()}",
+                                 f"--user-data-dir={tempdir}", "--no-first-run"])
+        try:
+            yield proc
+        finally:
+            if os.name == 'posix':
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            else:
+                proc.terminate()
+            try:
+                proc.wait(10)
+            except subprocess.TimeoutExpired:
+                if os.name == 'posix':
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)
+                else:
+                    proc.kill()

@@ -74,6 +74,7 @@ async def test_double_click_the_button(async_driver: Chrome, server: Server) -> 
     sync_locator = await async_driver.find_element(By.XPATH, "//button")
     x, y = await get_locator_pos(sync_locator)
     await async_driver.async_input.double_click("left", x, y)  # type: ignore[attr-defined]
+    await asyncio.sleep(0.1)
     assert await async_driver.execute_script("return window.double")
     assert await async_driver.execute_script("return result") == "Clicked"
 
@@ -123,7 +124,7 @@ async def test_locators_hover(async_driver: Chrome, server: Server) -> None:
     await async_driver.async_input.move(x, y)  # type: ignore[attr-defined]
 
     await asyncio.sleep(0.5)
-    assert await async_driver.execute_script("return document.querySelector('button:hover').id") == "button-12"
+    assert await async_driver.execute_script("return window.last_hover_elem.id") == "button-12"
 
 
 @pytest.mark.asyncio
