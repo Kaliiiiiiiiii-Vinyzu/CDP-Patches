@@ -66,6 +66,7 @@ def test_double_click_the_button(sync_page: Page, server: Server) -> None:
     locator = sync_page.locator("button")
     x, y = get_locator_pos(locator)
     sync_page.sync_input.double_click("left", x, y)  # type: ignore[attr-defined]
+    time.sleep(0.1)
     assert sync_page.evaluate("double")
     assert sync_page.evaluate("result") == "Clicked"
 
@@ -79,7 +80,7 @@ def test_locators_hover(sync_page: Page, server: Server) -> None:
     sync_page.sync_input.move(x, y)  # type: ignore[attr-defined]
 
     time.sleep(0.5)
-    assert sync_page.evaluate("document.querySelector('button:hover').id") == "button-12"
+    assert sync_page.evaluate("window.last_hover_elem.id") == "button-12"
 
 
 @pytest.mark.skip(reason="Scroll Tests currently arent implemented properly.")

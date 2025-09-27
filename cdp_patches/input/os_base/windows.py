@@ -1,13 +1,14 @@
 import asyncio
 import ctypes
 import re
+import time
 import warnings
 from typing import List, Literal, Union
 
-from pywinauto import application, timings
+from pywinauto import application, timings, win32defines, win32functions, win32structures
 from pywinauto.application import WindowSpecification
 from pywinauto.base_wrapper import ElementNotVisible
-from pywinauto.controls.hwndwrapper import HwndWrapper, InvalidWindowHandle
+from pywinauto.controls.hwndwrapper import HwndWrapper, InvalidWindowHandle, _calc_flags_and_coords
 
 from cdp_patches.input.exceptions import WindowClosedException
 
@@ -127,17 +128,43 @@ class WindowsBase:
 
         return self.browser_window
 
-    def down(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
+    def down(self, button: Literal["left", "right", "middle"], x: int, y: int, pressed: str = "") -> None:
+        if not pressed:
+            pressed = button
         self.ensure_window()
-        self.browser_window.press_mouse(button=button, coords=(int(x * self.scale_factor), int(y * self.scale_factor)))
+        self.browser_window.press_mouse(button=button, pressed=pressed, coords=(int(x * self.scale_factor), int(y * self.scale_factor)))
 
-    def up(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
-        self.ensure_window()
-        self.browser_window.release_mouse(button=button, coords=(int(x * self.scale_factor), int(y * self.scale_factor)))
+    def double_click(self, button: Literal["left", "right", "middle"], x: int, y: int, pressed: str = "", press_timeout: float = 0.01, click_timeout: float = 0.15) -> None:
+        if not pressed:
+            pressed = button
+        flags, click_point = _calc_flags_and_coords(pressed, [x, y])
 
-    def move(self, x: int, y: int) -> None:
         self.ensure_window()
-        self.browser_window.move_mouse(coords=(int(x * self.scale_factor), int(y * self.scale_factor)), pressed="left")
+
+        if button.lower() == "left":
+            click = (win32defines.WM_LBUTTONDOWN, win32defines.WM_LBUTTONUP)
+        elif button.lower() == "right":
+            click = (win32defines.WM_RBUTTONDOWN, win32defines.WM_RBUTTONUP)
+        else:
+            click = (win32defines.WM_MBUTTONDOWN, win32defines.WM_MBUTTONUP)
+
+        # figure out the flags and pack coordinates
+        for i in range(2):
+            for msg in click:
+                win32functions.PostMessage(self.browser_window, msg, win32structures.WPARAM(flags), win32structures.LPARAM(click_point))
+                time.sleep(press_timeout)
+                # wait until the thread can accept another message
+                win32functions.WaitGuiThreadIdle(self.browser_window.handle)
+            if not i:
+                time.sleep(click_timeout)
+
+    def up(self, button: Literal["left", "right", "middle"], x: int, y: int, pressed: str = "") -> None:
+        self.ensure_window()
+        self.browser_window.release_mouse(button=button, pressed=pressed, coords=(int(x * self.scale_factor), int(y * self.scale_factor)))
+
+    def move(self, x: int, y: int, pressed: str = "") -> None:
+        self.ensure_window()
+        self.browser_window.move_mouse(coords=(int(x * self.scale_factor), int(y * self.scale_factor)), pressed=pressed)
 
     def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
         self.ensure_window()

@@ -7,15 +7,15 @@ import socket
 import threading
 from contextlib import closing
 from http import HTTPStatus
+from pathlib import Path
 from typing import Any, Callable, Dict, Generator, Generic, Optional, Set, Tuple, TypeVar, cast
 from urllib.parse import urlparse
 
-from playwright._impl._path_utils import get_file_dirname
 from twisted.internet import reactor as _twisted_reactor
 from twisted.internet.selectreactor import SelectReactor
 from twisted.web import http
 
-_dirname = get_file_dirname()
+_dirname = Path(__file__).parent.absolute()
 reactor = cast(SelectReactor, _twisted_reactor)
 
 

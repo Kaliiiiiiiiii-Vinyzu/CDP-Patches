@@ -70,6 +70,7 @@ def test_double_click_the_button(sync_driver: Chrome, server: Server) -> None:
     sync_locator = sync_driver.find_element(By.XPATH, "//button")
     x, y = get_locator_pos(sync_locator)
     sync_driver.sync_input.double_click("left", x, y)  # type: ignore[attr-defined]
+    time.sleep(0.1)
     assert sync_driver.execute_script("return window.double")
     assert sync_driver.execute_script("return result") == "Clicked"
 
@@ -118,7 +119,7 @@ def test_locators_hover(sync_driver: Chrome, server: Server) -> None:
     sync_driver.sync_input.move(x, y)  # type: ignore[attr-defined]
 
     time.sleep(0.5)
-    assert sync_driver.execute_script("return document.querySelector('button:hover').id") == "button-12"
+    assert sync_driver.execute_script("return window.last_hover_elem.id") == "button-12"
 
 
 def test_fill_input(sync_driver: Chrome, server: Server) -> None:

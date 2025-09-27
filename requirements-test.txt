@@ -11,4 +11,3 @@ selenium==4.22.0
 selenium_driverless==1.9.3.1
 twisted==24.3.0
 types-requests==2.31.*
-webdriver_manager==4.0.1

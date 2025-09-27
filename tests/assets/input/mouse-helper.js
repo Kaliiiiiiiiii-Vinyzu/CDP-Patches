@@ -59,4 +59,10 @@
     for (let i = 0; i < 5; i++)
       box.classList.toggle('button-' + i, buttons & (1 << i));
   }
+
+  window.last_hover_elem = undefined
+  document.body.addEventListener("mousemove", ()=>{
+    var elem = document.querySelector('button:hover')
+    if (typeof elem !== 'undefined'){window.last_hover_elem = elem}
+  })
 })();

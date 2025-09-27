@@ -27,14 +27,14 @@ except ImportError:
 try:
     from selenium.webdriver import Chrome as SeleniumChrome
 except ImportError:
-    SeleniumChrome: Type["SeleniumChrome"] = "SeleniumChrome"  # type: ignore[no-redef]
+    SeleniumChrome: Type["SeleniumChrome"] = type("SeleniumChrome", (object,), {})  # type: ignore[no-redef]
 
 try:
     from selenium_driverless.sync.webdriver import Chrome as DriverlessSyncChrome
     from selenium_driverless.webdriver import Chrome as DriverlessAsyncChrome
 except ImportError:
-    DriverlessAsyncChrome: Type["DriverlessAsyncChrome"] = "DriverlessAsyncChrome"  # type: ignore[no-redef]
-    DriverlessSyncChrome: Type["DriverlessSyncChrome"] = "DriverlessSyncChrome"  # type: ignore[no-redef]
+    DriverlessAsyncChrome: Type["DriverlessAsyncChrome"] = type("DriverlessAsyncChrome", (object,), {})  # type: ignore[no-redef]
+    DriverlessSyncChrome: Type["DriverlessSyncChrome"] = type("DriverlessSyncChrome", (object,), {})  # type: ignore[no-redef]
 
 all_browsers = Union[AsyncContext, AsyncBrowser, SyncContext, SyncBrowser, BotrightContext, SeleniumChrome, DriverlessAsyncChrome, DriverlessSyncChrome]
 sync_browsers = Union[SeleniumChrome, SyncContext, SyncBrowser, DriverlessSyncChrome]

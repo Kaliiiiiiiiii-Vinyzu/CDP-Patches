@@ -69,6 +69,7 @@ async def test_double_click_the_button(async_page: Page, server: Server) -> None
     locator = async_page.locator("button")
     x, y = await get_locator_pos(locator)
     await async_page.async_input.double_click("left", x, y)  # type: ignore[attr-defined]
+    await asyncio.sleep(0.1)
     assert await async_page.evaluate("double")
     assert await async_page.evaluate("result") == "Clicked"
 
@@ -83,7 +84,7 @@ async def test_locators_hover(async_page: Page, server: Server) -> None:
     await async_page.async_input.move(x, y)  # type: ignore[attr-defined]
 
     await asyncio.sleep(0.5)
-    assert await async_page.evaluate("document.querySelector('button:hover').id") == "button-12"
+    assert await async_page.evaluate("window.last_hover_elem.id") == "button-12"
 
 
 @pytest.mark.skip(reason="Scroll Tests currently arent implemented properly.")

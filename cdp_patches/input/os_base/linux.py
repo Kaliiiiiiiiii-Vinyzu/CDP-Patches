@@ -224,6 +224,8 @@ class LinuxBase:
         fake_input(self.display, X.ButtonPress, self._translate_button(button))
         self.display.sync()
 
+    double_down = down
+
     def up(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
         self.ensure_window()
         self.move(x=x, y=y)

@@ -1,3 +1,8 @@
+import os
+import signal
+import subprocess
+import sys
+import tempfile
 from typing import AsyncGenerator, Generator, List
 
 import pytest
@@ -7,14 +12,13 @@ from playwright.async_api import async_playwright
 from playwright.sync_api import Page as SyncPage
 from playwright.sync_api import sync_playwright
 from selenium import webdriver as selenium_webdriver
-from selenium.webdriver.chrome.service import Service as SeleniumChromeService
 from selenium_driverless import webdriver as async_webdriver
 from selenium_driverless.sync import webdriver as sync_webdriver
-from webdriver_manager.chrome import ChromeDriverManager
 
 from cdp_patches.input import AsyncInput, SyncInput
 
 from .server import Server, test_server
+from .utils import find_chrome_executable, random_port
 
 flags: List[str] = [
     "--incognito",
@@ -146,7 +150,7 @@ def selenium_driver() -> Generator[selenium_webdriver.Chrome, None, None]:
     # start url at about:blank
     options.add_argument("about:blank")
 
-    with selenium_webdriver.Chrome(options, service=SeleniumChromeService(ChromeDriverManager().install())) as driver:
+    with selenium_webdriver.Chrome(options) as driver:
         driver.sync_input = SyncInput(browser=driver)
         yield driver
 
@@ -160,3 +164,29 @@ async def async_driver() -> AsyncGenerator[async_webdriver.Chrome, None]:
     async with async_webdriver.Chrome(options) as driver:
         driver.async_input = await AsyncInput(browser=driver)
         yield driver
+
+
+@pytest.fixture
+def chrome_proc() -> Generator[subprocess.Popen[bytes], None, None]:
+    if sys.version_info.minor >= 10:
+        options = {"ignore_cleanup_errors": True}
+    else:
+        options = {}
+
+    with tempfile.TemporaryDirectory(**options) as tempdir:  # type: ignore[call-overload]
+        path = find_chrome_executable()
+        proc = subprocess.Popen([path, f"--remote-debugging-port={random_port()}", f"--user-data-dir={tempdir}", "--no-first-run"])
+        try:
+            yield proc
+        finally:
+            if os.name == "posix":
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)  # type: ignore[attr-defined]
+            else:
+                proc.terminate()
+            try:
+                proc.wait(10)
+            except subprocess.TimeoutExpired:
+                if os.name == "posix":
+                    os.killpg(os.getpgid(proc.pid), signal.SIGKILL)  # type: ignore[attr-defined]
+                else:
+                    proc.kill()
