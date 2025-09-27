@@ -160,3 +160,9 @@ cython_debug/
 #.idea/
 /.idea
 /.vs
+
+# AI Weights
+*.pt
+
+# MacOS
+.DS_Store
