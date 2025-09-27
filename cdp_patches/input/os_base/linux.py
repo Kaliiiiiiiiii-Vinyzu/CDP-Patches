@@ -254,10 +254,13 @@ class LinuxBase:
 
     def send_keystrokes(self, text: str) -> None:
         self.ensure_window()
-        selective_regex = re.compile(r"{[^{}]*}|.")  # Only for redundancy of windows implementations
+        selective_regex = re.compile(r"<<[^>]*>>|{[^{}]*}|.")  # Now accounting for both windows {} and linux <<>> (not part of official keycodes) keycodes
         shift_keycode = self.display.keysym_to_keycode(0xFFE1)  # Shift Key (0xFFE1)
 
         for key in selective_regex.findall(text):
+            if key.startswith("<<") and key.endswith(">>"):
+                key = key[2:-2]  # Remove << and >> from linux keycodes
+
             shifted_key = key.isupper() or key in self.shifted_chars
             if key in symbol_dict:
                 key = symbol_dict[key]
