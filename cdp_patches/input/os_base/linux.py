@@ -100,7 +100,9 @@ class LinuxBase:
         self.display = display.Display(display_env)
         self.tab_pid = self.get_window()
 
-        self.browser_window = self.display.create_resource_object("window", self.tab_pid)
+        self.browser_window = self.display.create_resource_object(
+            "window", self.tab_pid
+        )
 
     def get_window(self) -> Any:
         name_atom = self.display.get_atom("WM_NAME", only_if_exists=True)
@@ -128,7 +130,9 @@ class LinuxBase:
             # window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
 
             # Filter out non-browser windows, for example the Taskbar or Info Bars
-            if (b"google-chrome" in title) or (title == b"chrome") or (min_height == 0):  # or (window_x == window_y) or not all((window_x, window_y))
+            if (
+                (b"google-chrome" in title) or (title == b"chrome") or (min_height == 0)
+            ):  # or (window_x == window_y) or not all((window_x, window_y))
                 continue
 
             self.browser_window = window
@@ -158,7 +162,12 @@ class LinuxBase:
                 if window.query_tree().children:
                     search_windows_by_pid(window.query_tree(), pid)
 
-        await self._loop.run_in_executor(None, lambda: search_windows_by_pid(self.display.screen().root.query_tree(), self.pid))
+        await self._loop.run_in_executor(
+            None,
+            lambda: search_windows_by_pid(
+                self.display.screen().root.query_tree(), self.pid
+            ),
+        )
         if not res_windows:
             raise WindowClosedException(f"No windows found for PID: {self.pid}")
 
@@ -170,7 +179,9 @@ class LinuxBase:
             # window_x, window_y = parent_offset_coords.x, parent_offset_coords.y
 
             # Filter out non-browser windows, for example the Taskbar or Info Bars
-            if (b"google-chrome" in title) or (title == b"chrome") or (min_height == 0):  # or (window_x == window_y) or not all((window_x, window_y))
+            if (
+                (b"google-chrome" in title) or (title == b"chrome") or (min_height == 0)
+            ):  # or (window_x == window_y) or not all((window_x, window_y))
                 continue
 
             self.browser_window = window
@@ -180,8 +191,12 @@ class LinuxBase:
 
     def _offset_toolbar_height(self) -> Tuple[int, int]:
         # Get Window Location
-        root_offset_coords = self.browser_window.translate_coords(self.browser_window.query_tree().root, 0, 0)
-        parent_offset_coords = self.browser_window.translate_coords(self.browser_window.query_tree().parent, 0, 0)
+        root_offset_coords = self.browser_window.translate_coords(
+            self.browser_window.query_tree().root, 0, 0
+        )
+        parent_offset_coords = self.browser_window.translate_coords(
+            self.browser_window.query_tree().parent, 0, 0
+        )
         window_x = abs(root_offset_coords.x) + abs(parent_offset_coords.x)
         window_y = abs(root_offset_coords.y) + abs(parent_offset_coords.y)
 
@@ -189,11 +204,15 @@ class LinuxBase:
         chrome_toolbar_height = self.browser_window.get_wm_normal_hints().min_height - 1
 
         # Get Linux (Outer) Window Toolbar Height
-        frame_extends_atom = self.display.get_atom("_NET_FRAME_EXTENTS", only_if_exists=True)
+        frame_extends_atom = self.display.get_atom(
+            "_NET_FRAME_EXTENTS", only_if_exists=True
+        )
         if frame_extends_atom == X.NONE:
             raise ValueError('No Atom interned with the Name "_NET_FRAME_EXTENTS".')
 
-        net_frame_extends = self.browser_window.get_property(frame_extends_atom, 0, 0, pow(2, 32) - 1)
+        net_frame_extends = self.browser_window.get_property(
+            frame_extends_atom, 0, 0, pow(2, 32) - 1
+        )
         if net_frame_extends:
             window_toolbar_height = net_frame_extends.value[2]
             window_toolbar_width = net_frame_extends.value[3]
@@ -206,7 +225,9 @@ class LinuxBase:
         return offset_width, offset_height
 
     @staticmethod
-    def _translate_button(button: Literal["left", "right", "middle", "scroll_up", "scroll_down"]) -> int:
+    def _translate_button(
+        button: Literal["left", "right", "middle", "scroll_up", "scroll_down"],
+    ) -> int:
         if button == "left":
             return 1
         elif button == "middle":
@@ -224,8 +245,6 @@ class LinuxBase:
         fake_input(self.display, X.ButtonPress, self._translate_button(button))
         self.display.sync()
 
-    double_down = down
-
     def up(self, button: Literal["left", "right", "middle"], x: int, y: int) -> None:
         self.ensure_window()
         self.move(x=x, y=y)
@@ -241,28 +260,37 @@ class LinuxBase:
         fake_input(self.display, X.MotionNotify, x=x, y=y)
         self.display.sync()
 
-    def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
+    def scroll(
+        self, direction: Literal["up", "down", "left", "right"], amount: int
+    ) -> None:
         self.ensure_window()
         if direction in ("left", "right"):
-            raise NotImplementedError("Scrolling horizontally is not supported on Linux.")
+            raise NotImplementedError(
+                "Scrolling horizontally is not supported on Linux."
+            )
 
-        scroll_direction: Literal["scroll_up", "scroll_down"] = "scroll_up" if direction == "up" else "scroll_down"
+        scroll_direction: Literal["scroll_up", "scroll_down"] = (
+            "scroll_up" if direction == "up" else "scroll_down"
+        )
 
         for _ in range(amount):
-            fake_input(self.display, X.ButtonPress, self._translate_button(scroll_direction))
+            fake_input(
+                self.display, X.ButtonPress, self._translate_button(scroll_direction)
+            )
             self.display.sync()
-            fake_input(self.display, X.ButtonRelease, self._translate_button(scroll_direction))
+            fake_input(
+                self.display, X.ButtonRelease, self._translate_button(scroll_direction)
+            )
             self.display.sync()
 
     def send_keystrokes(self, text: str) -> None:
         self.ensure_window()
-        selective_regex = re.compile(r"<<[^>]*>>|{[^{}]*}|.")  # Now accounting for both windows {} and linux <<>> (not part of official keycodes) keycodes
+        selective_regex = re.compile(
+            r"{[^{}]*}|."
+        )  # Only for redundancy of windows implementations
         shift_keycode = self.display.keysym_to_keycode(0xFFE1)  # Shift Key (0xFFE1)
 
         for key in selective_regex.findall(text):
-            if key.startswith("<<") and key.endswith(">>"):
-                key = key[2:-2]  # Remove << and >> from linux keycodes
-
             shifted_key = key.isupper() or key in self.shifted_chars
             if key in symbol_dict:
                 key = symbol_dict[key]
@@ -277,7 +305,9 @@ class LinuxBase:
 
             fake_input(self.display, X.KeyPress, keycode)
             self.display.sync()
-            time.sleep(0.01)  # Note: Might want to increase this in the future, to make it more human-like, but pywinauto uses the same timeouts so for now its fine.
+            time.sleep(
+                0.01
+            )  # Note: Might want to increase this in the future, to make it more human-like, but pywinauto uses the same timeouts so for now its fine.
 
             fake_input(self.display, X.KeyRelease, keycode)
 

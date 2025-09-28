@@ -175,4 +175,11 @@ class LinuxKeyboardCodes:
 
 
 KeyboardCodes = WinKeyboardCodes if is_windows else LinuxKeyboardCodes
-__all__ = ["SyncInput", "AsyncInput", "KeyboardCodes", "WinKeyboardCodes", "LinuxKeyboardCodes", "is_windows"]
+__all__ = [
+    "SyncInput",
+    "AsyncInput",
+    "KeyboardCodes",
+    "WinKeyboardCodes",
+    "LinuxKeyboardCodes",
+    "is_windows",
+]

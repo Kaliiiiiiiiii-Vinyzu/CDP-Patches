@@ -8,8 +8,6 @@ import sys
 import time
 from typing import Any, Generator, Literal, Optional, Union
 
-from pywinauto.mouse import press
-
 if sys.version_info.minor >= 10:
     from typing import TypeAlias
 else:
@@ -27,7 +25,12 @@ if is_windows:
 
     LinuxBase: TypeAlias = WindowsBase  # type: ignore[no-redef]
     InputBase = WindowsBase  # type: ignore
-    WindowErrors = (ValueError, ElementNotEnabled, ProcessNotFoundError, WindowClosedException)  # type: ignore[assignment]
+    WindowErrors = (
+        ValueError,
+        ElementNotEnabled,
+        ProcessNotFoundError,
+        WindowClosedException,
+    )  # type: ignore[assignment]
 else:
     from cdp_patches.input.os_base.linux import LinuxBase  # type: ignore[assignment]
 
@@ -35,7 +38,12 @@ else:
     InputBase = LinuxBase  # type: ignore
     WindowErrors = (AssertionError, ValueError, WindowClosedException)  # type: ignore[assignment]
 
-from .browsers import DriverlessAsyncChrome, async_browsers, get_async_browser_pid, get_async_scale_factor
+from .browsers import (
+    DriverlessAsyncChrome,
+    async_browsers,
+    get_async_browser_pid,
+    get_async_scale_factor,
+)
 from .mouse_trajectory import HumanizeMouseTrajectory
 
 
@@ -52,10 +60,17 @@ class AsyncInput:
     selective_modifiers_regex = re.compile(r"{[^{}]*}|.")
 
     def __init__(
-        self, pid: Optional[int] = None, browser: Optional[async_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True, window_timeout: Optional[float] = 30.0
+        self,
+        pid: Optional[int] = None,
+        browser: Optional[async_browsers] = None,
+        scale_factor: Optional[float] = 1.0,
+        emulate_behaviour: Optional[bool] = True,
+        window_timeout: Optional[float] = 30.0,
     ) -> None:
         if platform.system() not in ("Windows", "Linux"):
-            raise SystemError("Unknown system (You´re probably using MacOS, which is currently not supported).")
+            raise SystemError(
+                "Unknown system (You´re probably using MacOS, which is currently not supported)."
+            )
 
         self.pid = pid
         self.browser = browser
@@ -106,29 +121,59 @@ class AsyncInput:
                 pass
             await self._sleep_timeout(0.1)
 
-        raise TimeoutError(f"Chrome Window (PID: {self.pid}) not found in {self.window_timeout} seconds.")
+        raise TimeoutError(
+            f"Chrome Window (PID: {self.pid}) not found in {self.window_timeout} seconds."
+        )
 
     async def _sleep_timeout(self, timeout: Optional[float] = None) -> None:
         timeout = timeout or self.sleep_timeout
         if not random.randint(0, 10):
             timeout_random = self.sleep_timeout / 10
-            timeout = timeout or random.uniform(self.sleep_timeout, self.sleep_timeout + timeout_random)
+            timeout = timeout or random.uniform(
+                self.sleep_timeout, self.sleep_timeout + timeout_random
+            )
 
         await asyncio.sleep(timeout)
 
     async def click(
-        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "", emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        pressed: str = "",
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = None,
     ) -> None:
         x, y = int(x), int(y)
 
-        await self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout, pressed=pressed)
+        await self.down(
+            button=button,
+            x=x,
+            y=y,
+            emulate_behaviour=emulate_behaviour,
+            timeout=timeout,
+            pressed=pressed,
+        )
+        await self.down(
+            button=button,
+            x=x,
+            y=y,
+            emulate_behaviour=emulate_behaviour,
+            timeout=timeout,
+        )
         if self.emulate_behaviour and emulate_behaviour:
             await self._sleep_timeout(timeout=timeout)
         await self.up(button=button, x=x, y=y, pressed=pressed)
         self.last_x, self.last_y = x, y
 
     async def double_click(
-        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "", emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = None,
+        pressed: str = "",
     ) -> None:
         x, y = int(x), int(y)
 
@@ -138,34 +183,68 @@ class AsyncInput:
             self._base.move(x=x, y=y)
 
         kwargs = _mk_kwargs(pressed)
-        self._base.double_click(button=button, x=x, y=y, press_timeout=press_timeout, click_timeout=click_timeout, **kwargs)
+        self._base.double_click(
+            button=button,
+            x=x,
+            y=y,
+            press_timeout=press_timeout,
+            click_timeout=click_timeout,
+            **kwargs,
+        )
         self.last_x, self.last_y = x, y
 
     async def down(
-        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "", emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = None,
+        pressed: str = "",
     ) -> None:
         x, y = int(x), int(y)
 
         if self.emulate_behaviour and emulate_behaviour:
-            await self.move(x=x, y=y, timeout=timeout, emulate_behaviour=emulate_behaviour, pressed=pressed)
+            await self.move(
+                x=x,
+                y=y,
+                timeout=timeout,
+                emulate_behaviour=emulate_behaviour,
+                pressed=pressed,
+            )
         kwargs = _mk_kwargs(pressed)
         self._base.down(button=button, x=x, y=y, **kwargs)
         self.last_x, self.last_y = x, y
 
-    async def up(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "") -> None:
+    async def up(
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        pressed: str = "",
+    ) -> None:
         x, y = int(x), int(y)
 
         kwargs = _mk_kwargs(pressed)
         self._base.up(button=button, x=x, y=y, **kwargs)
         self.last_x, self.last_y = x, y
 
-    async def move(self, x: Union[int, float], y: Union[int, float], emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None, pressed: str = "") -> None:
+    async def move(
+        self,
+        x: Union[int, float],
+        y: Union[int, float],
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = None,
+        pressed: str = "",
+    ) -> None:
         kwargs = _mk_kwargs(pressed)
         async with self._move_lock:
             x, y = int(x), int(y)
 
             if self.emulate_behaviour and emulate_behaviour:
-                humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
+                humanized_points = HumanizeMouseTrajectory(
+                    (self.last_x, self.last_y), (x, y)
+                )
 
                 # Move Mouse to new random locations
                 for i, (human_x, human_y) in enumerate(humanized_points.points):
@@ -176,10 +255,14 @@ class AsyncInput:
                 self._base.move(x=x, y=y, **kwargs)
             self.last_x, self.last_y = x, y
 
-    async def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
+    async def scroll(
+        self, direction: Literal["up", "down", "left", "right"], amount: int
+    ) -> None:
         self._base.scroll(direction=direction, amount=amount)
 
-    async def type(self, text: str, fill: Optional[bool] = False, timeout: Optional[float] = None) -> None:
+    async def type(
+        self, text: str, fill: Optional[bool] = False, timeout: Optional[float] = None
+    ) -> None:
         if self.emulate_behaviour and not fill:
             for i, char in enumerate(self.selective_modifiers_regex.findall(text)):
                 # If new word is started wait some more time

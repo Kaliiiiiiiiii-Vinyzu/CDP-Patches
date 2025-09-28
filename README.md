@@ -1,5 +1,5 @@
 <h1 align="center">
-    CDP-Patches v1.0
+    CDP-Patches v1.1
 </h1>
 
 
@@ -33,6 +33,14 @@
         <img src="https://img.shields.io/badge/imports-isort-yellow.svg">
     </a>
 </p>
+
+---
+
+> [!CAUTION]
+> The [crbug#1477537](https://bugs.chromium.org/p/chromium/issues/detail?id=1477537) causing the Input Leak has been fixed in [#6917162](https://chromium-review.googlesource.com/c/chromium/src/+/6917162). It will probably be implemented in Chrome-Stable v142+. <br>
+> CoalescedEvents are now also emitted by Input Events. There is no reason to use this package anymore, except for Select Elements ([crbug#40943840](https://issues.chromium.org/issues/40943840)). 
+
+---
 
 ## Install it from PyPI
 

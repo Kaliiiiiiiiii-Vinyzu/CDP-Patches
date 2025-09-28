@@ -16,7 +16,12 @@ def get_locator_pos(locator: WebElement):
     size = locator.size
     assert location, size
 
-    x, y, width, height = location.get("x"), location.get("y"), size.get("width"), size.get("height")
+    x, y, width, height = (
+        location.get("x"),
+        location.get("y"),
+        size.get("width"),
+        size.get("height"),
+    )
     assert x and y and width and height
 
     x, y = x + width // 2, y + height // 2
@@ -152,7 +157,10 @@ def test_keyboard_type_into_a_textarea(sync_driver: Chrome) -> None:
     sync_driver.sync_input.click("left", x, y)  # type: ignore[attr-defined]
 
     sync_driver.sync_input.type(text)  # type: ignore[attr-defined]
-    assert sync_driver.execute_script('return document.querySelector("textarea").value') == text
+    assert (
+        sync_driver.execute_script('return document.querySelector("textarea").value')
+        == text
+    )
 
 
 def test_quit_exception(sync_driver: Chrome) -> None:

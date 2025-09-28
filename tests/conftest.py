@@ -87,7 +87,8 @@ flags: List[str] = [
     "--disable-new-content-rendering-timeout",
     "--disable-image-animation-resync",
     "--disable-partial-raster",
-    "--blink-settings=primaryHoverType=2,availableHoverTypes=2," "primaryPointerType=4,availablePointerTypes=4",
+    "--blink-settings=primaryHoverType=2,availableHoverTypes=2,"
+    "primaryPointerType=4,availablePointerTypes=4",
     "--disable-layer-tree-host-memory-pressure",
 ]
 
@@ -143,7 +144,9 @@ def selenium_driver() -> Generator[selenium_webdriver.Chrome, None, None]:
         options.add_argument(flag)
 
     # disable logs & automation
-    options.add_experimental_option("excludeSwitches", ["enable-logging", "enable-automation"])
+    options.add_experimental_option(
+        "excludeSwitches", ["enable-logging", "enable-automation"]
+    )
     options.add_experimental_option("useAutomationExtension", False)
     options.add_argument("--log-level=3")
 
@@ -175,7 +178,14 @@ def chrome_proc() -> Generator[subprocess.Popen[bytes], None, None]:
 
     with tempfile.TemporaryDirectory(**options) as tempdir:  # type: ignore[call-overload]
         path = find_chrome_executable()
-        proc = subprocess.Popen([path, f"--remote-debugging-port={random_port()}", f"--user-data-dir={tempdir}", "--no-first-run"])
+        proc = subprocess.Popen(
+            [
+                path,
+                f"--remote-debugging-port={random_port()}",
+                f"--user-data-dir={tempdir}",
+                "--no-first-run",
+            ]
+        )
         try:
             yield proc
         finally:

@@ -16,7 +16,12 @@ async def get_locator_pos(locator: WebElement):
     size = await locator.size
     assert location, size
 
-    x, y, width, height = location.get("x"), location.get("y"), size.get("width"), size.get("height")
+    x, y, width, height = (
+        location.get("x"),
+        location.get("y"),
+        size.get("width"),
+        size.get("height"),
+    )
     assert x and y and width and height
 
     x, y = x + width // 2, y + height // 2
@@ -47,7 +52,9 @@ async def test_input_leak(async_driver: Chrome, server: Server) -> None:
     x, y = await get_locator_pos(sync_locator)
     await async_driver.async_input.click("left", x, y)  # type: ignore[attr-defined]
 
-    is_leaking = await async_driver.eval_async("return await window.is_leaking", timeout=300)
+    is_leaking = await async_driver.eval_async(
+        "return await window.is_leaking", timeout=300
+    )
     assert not is_leaking
 
 
@@ -124,7 +131,10 @@ async def test_locators_hover(async_driver: Chrome, server: Server) -> None:
     await async_driver.async_input.move(x, y)  # type: ignore[attr-defined]
 
     await asyncio.sleep(0.5)
-    assert await async_driver.execute_script("return window.last_hover_elem.id") == "button-12"
+    assert (
+        await async_driver.execute_script("return window.last_hover_elem.id")
+        == "button-12"
+    )
 
 
 @pytest.mark.asyncio
@@ -159,7 +169,12 @@ async def test_keyboard_type_into_a_textarea(async_driver: Chrome) -> None:
     await async_driver.async_input.click("left", x, y)  # type: ignore[attr-defined]
 
     await async_driver.async_input.type(text)  # type: ignore[attr-defined]
-    assert await async_driver.execute_script('return document.querySelector("textarea").value') == text
+    assert (
+        await async_driver.execute_script(
+            'return document.querySelector("textarea").value'
+        )
+        == text
+    )
 
 
 @pytest.mark.asyncio

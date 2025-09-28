@@ -20,6 +20,19 @@ except ImportError:
     SyncContext: Type["SyncContext"] = "SyncContext"  # type: ignore[no-redef]
 
 try:
+    from patchright.async_api import Browser as PAsyncBrowser
+    from patchright.async_api import BrowserContext as PAsyncContext
+    from patchright.async_api import Error as PAsyncError
+    from patchright.async_api import Error as PSyncError
+    from patchright.sync_api import Browser as PSyncBrowser
+    from patchright.sync_api import BrowserContext as PSyncContext
+except ImportError:
+    PAsyncBrowser: Type["PAsyncBrowser"] = "PAsyncBrowser"  # type: ignore[no-redef]
+    PAsyncContext: Type["PAsyncContext"] = "PAsyncContext"  # type: ignore[no-redef]
+    PSyncBrowser: Type["PSyncBrowser"] = "PSyncBrowser"  # type: ignore[no-redef]
+    PSyncContext: Type["PSyncContext"] = "PSyncContext"  # type: ignore[no-redef]
+
+try:
     from botright.extended_typing import BrowserContext as BotrightContext
 except ImportError:
     BotrightContext: Type["BotrightContext"] = "BotrightContext"  # type: ignore[no-redef]
@@ -33,12 +46,43 @@ try:
     from selenium_driverless.sync.webdriver import Chrome as DriverlessSyncChrome
     from selenium_driverless.webdriver import Chrome as DriverlessAsyncChrome
 except ImportError:
-    DriverlessAsyncChrome: Type["DriverlessAsyncChrome"] = type("DriverlessAsyncChrome", (object,), {})  # type: ignore[no-redef]
-    DriverlessSyncChrome: Type["DriverlessSyncChrome"] = type("DriverlessSyncChrome", (object,), {})  # type: ignore[no-redef]
+    DriverlessAsyncChrome: Type["DriverlessAsyncChrome"] = type(
+        "DriverlessAsyncChrome", (object,), {}
+    )  # type: ignore[no-redef]
+    DriverlessSyncChrome: Type["DriverlessSyncChrome"] = type(
+        "DriverlessSyncChrome", (object,), {}
+    )  # type: ignore[no-redef]
 
-all_browsers = Union[AsyncContext, AsyncBrowser, SyncContext, SyncBrowser, BotrightContext, SeleniumChrome, DriverlessAsyncChrome, DriverlessSyncChrome]
-sync_browsers = Union[SeleniumChrome, SyncContext, SyncBrowser, DriverlessSyncChrome]
-async_browsers = Union[AsyncContext, AsyncBrowser, BotrightContext, DriverlessAsyncChrome]
+all_browsers = Union[
+    AsyncContext,
+    AsyncBrowser,
+    SyncContext,
+    SyncBrowser,
+    PAsyncContext,
+    PAsyncBrowser,
+    PSyncContext,
+    PSyncBrowser,
+    BotrightContext,
+    SeleniumChrome,
+    DriverlessAsyncChrome,
+    DriverlessSyncChrome,
+]
+sync_browsers = Union[
+    SeleniumChrome,
+    SyncContext,
+    SyncBrowser,
+    PSyncBrowser,
+    PSyncContext,
+    DriverlessSyncChrome,
+]
+async_browsers = Union[
+    AsyncContext,
+    AsyncBrowser,
+    PAsyncBrowser,
+    PAsyncContext,
+    BotrightContext,
+    DriverlessAsyncChrome,
+]
 
 
 class InternalProcessInfo(TypedDict):
@@ -96,11 +140,17 @@ def process_info_from_url(url: str) -> Dict[str, List[InternalProcessInfo]]:
 
 # Browser PID
 # Selenium & Selenium Driverless
-def get_sync_selenium_browser_pid(driver: Union[SeleniumChrome, DriverlessSyncChrome]) -> int:
+def get_sync_selenium_browser_pid(
+    driver: Union[SeleniumChrome, DriverlessSyncChrome],
+) -> int:
     if isinstance(driver, DriverlessSyncChrome):
-        cdp_system_info = driver.base_target.execute_cdp_cmd(cmd="SystemInfo.getProcessInfo")
+        cdp_system_info = driver.base_target.execute_cdp_cmd(
+            cmd="SystemInfo.getProcessInfo"
+        )
     elif isinstance(driver, SeleniumChrome):
-        cdp_system_info = process_info_from_url(driver.capabilities["goog:chromeOptions"]["debuggerAddress"])
+        cdp_system_info = process_info_from_url(
+            driver.capabilities["goog:chromeOptions"]["debuggerAddress"]
+        )
     else:
         raise ValueError("Invalid browser type.")
     process_info = CDPProcessInfo(cdp_system_info)
@@ -109,7 +159,9 @@ def get_sync_selenium_browser_pid(driver: Union[SeleniumChrome, DriverlessSyncCh
 
 
 async def get_async_selenium_browser_pid(driver: DriverlessAsyncChrome) -> int:
-    cdp_system_info = await driver.base_target.execute_cdp_cmd(cmd="SystemInfo.getProcessInfo")
+    cdp_system_info = await driver.base_target.execute_cdp_cmd(
+        cmd="SystemInfo.getProcessInfo"
+    )
 
     process_info = CDPProcessInfo(cdp_system_info)
     browser_info = process_info.get_main_browser()
@@ -134,7 +186,9 @@ def get_sync_playwright_browser_pid(browser: Union[SyncContext, SyncBrowser]) ->
     return browser_info["id"]
 
 
-async def get_async_playwright_browser_pid(browser: Union[AsyncContext, AsyncBrowser, BotrightContext]) -> int:
+async def get_async_playwright_browser_pid(
+    browser: Union[AsyncContext, AsyncBrowser, BotrightContext],
+) -> int:
     if isinstance(browser, AsyncContext) or isinstance(browser, BotrightContext):
         main_browser = browser.browser
         assert main_browser
@@ -162,7 +216,11 @@ def get_sync_browser_pid(browser: sync_browsers) -> int:
 async def get_async_browser_pid(browser: async_browsers) -> int:
     if isinstance(browser, DriverlessAsyncChrome):
         return await get_async_selenium_browser_pid(browser)
-    elif isinstance(browser, AsyncContext) or isinstance(browser, AsyncBrowser) or isinstance(browser, BotrightContext):
+    elif (
+        isinstance(browser, AsyncContext)
+        or isinstance(browser, AsyncBrowser)
+        or isinstance(browser, BotrightContext)
+    ):
         return await get_async_playwright_browser_pid(browser)
 
     raise ValueError("Invalid browser type.")
@@ -170,9 +228,13 @@ async def get_async_browser_pid(browser: async_browsers) -> int:
 
 # Scale Factor
 # Selenium & Selenium Driverless
-def get_sync_selenium_scale_factor(driver: Union[SeleniumChrome, DriverlessSyncChrome]) -> int:
+def get_sync_selenium_scale_factor(
+    driver: Union[SeleniumChrome, DriverlessSyncChrome],
+) -> int:
     if isinstance(driver, DriverlessSyncChrome):
-        _scale_factor: int = driver.execute_script("return window.devicePixelRatio", unique_context=True)
+        _scale_factor: int = driver.execute_script(
+            "return window.devicePixelRatio", unique_context=True
+        )
         return _scale_factor
 
     scale_factor: int = driver.execute_script("return window.devicePixelRatio")
@@ -180,7 +242,9 @@ def get_sync_selenium_scale_factor(driver: Union[SeleniumChrome, DriverlessSyncC
 
 
 async def get_async_selenium_scale_factor(driver: DriverlessAsyncChrome) -> int:
-    scale_factor: int = await driver.execute_script("return window.devicePixelRatio", unique_context=True)
+    scale_factor: int = await driver.execute_script(
+        "return window.devicePixelRatio", unique_context=True
+    )
     return scale_factor
 
 
@@ -211,43 +275,66 @@ def get_sync_playwright_scale_factor(browser: Union[SyncContext, SyncBrowser]) -
             page_frame_tree = cdp_session.send("Page.getFrameTree")
             page_id = page_frame_tree["frameTree"]["frame"]["id"]
 
-            isolated_world = cdp_session.send("Page.createIsolatedWorld", {"frameId": page_id, "grantUniveralAccess": True, "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya"})
+            isolated_world = cdp_session.send(
+                "Page.createIsolatedWorld",
+                {
+                    "frameId": page_id,
+                    "grantUniveralAccess": True,
+                    "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya",
+                },
+            )
             isolated_exec_id = isolated_world["executionContextId"]
             break
-        except SyncError as e:
-            if e.message == "Protocol error (Page.createIsolatedWorld): Invalid parameters":
+        except (SyncError, PSyncError) as e:
+            if (
+                e.message
+                == "Protocol error (Page.createIsolatedWorld): Invalid parameters"
+            ):
                 pass
             else:
                 raise e
     else:
-        raise TimeoutError("Page.createIsolatedWorld did not initialize properly within 30 seconds.")
+        raise TimeoutError(
+            "Page.createIsolatedWorld did not initialize properly within 30 seconds."
+        )
 
     time2 = time.perf_counter()
     while (time.perf_counter() - time2) <= 10:
         try:
-            scale_factor_eval = cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio", "contextId": isolated_exec_id})
+            scale_factor_eval = cdp_session.send(
+                "Runtime.evaluate",
+                {
+                    "expression": "window.devicePixelRatio",
+                    "contextId": isolated_exec_id,
+                },
+            )
             scale_factor: int = scale_factor_eval["result"]["value"]
             break
-        except SyncError as e:
-            if e.message == "Protocol error (Runtime.evaluate): Cannot find context with specified id":
+        except (SyncError, PSyncError) as e:
+            if (
+                e.message
+                == "Protocol error (Runtime.evaluate): Cannot find context with specified id"
+            ):
                 pass
             else:
                 raise e
     else:
         raise TimeoutError("Runtime.evaluate did not run properly within 30 seconds.")
 
-    with suppress(SyncError):
+    with suppress(SyncError, PSyncError):
         if close_page:
             page.close()
 
-    with suppress(SyncError):
+    with suppress(SyncError, PSyncError):
         if close_context:
             context.close()
 
     return scale_factor
 
 
-async def get_async_playwright_scale_factor(browser: Union[AsyncContext, AsyncBrowser, BotrightContext]) -> int:
+async def get_async_playwright_scale_factor(
+    browser: Union[AsyncContext, AsyncBrowser, BotrightContext],
+) -> int:
     close_context, close_page = False, False
     if isinstance(browser, AsyncContext) or isinstance(browser, BotrightContext):
         context = browser
@@ -273,36 +360,57 @@ async def get_async_playwright_scale_factor(browser: Union[AsyncContext, AsyncBr
             page_frame_tree = await cdp_session.send("Page.getFrameTree")
             page_id = page_frame_tree["frameTree"]["frame"]["id"]
 
-            isolated_world = await cdp_session.send("Page.createIsolatedWorld", {"frameId": page_id, "grantUniveralAccess": True, "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya"})
+            isolated_world = await cdp_session.send(
+                "Page.createIsolatedWorld",
+                {
+                    "frameId": page_id,
+                    "grantUniveralAccess": True,
+                    "worldName": "Shimmy shimmy yay, shimmy yay, shimmy ya",
+                },
+            )
             isolated_exec_id = isolated_world["executionContextId"]
             break
-        except AsyncError as e:
-            if e.message == "Protocol error (Page.createIsolatedWorld): Invalid parameters":
+        except (AsyncError, PAsyncBrowser) as e:
+            if (
+                e.message
+                == "Protocol error (Page.createIsolatedWorld): Invalid parameters"
+            ):
                 pass
             else:
                 raise e
     else:
-        raise TimeoutError("Page.createIsolatedWorld did not initialize properly within 30 seconds.")
+        raise TimeoutError(
+            "Page.createIsolatedWorld did not initialize properly within 30 seconds."
+        )
 
     time2 = time.perf_counter()
     while (time.perf_counter() - time2) <= 10:
         try:
-            scale_factor_eval = await cdp_session.send("Runtime.evaluate", {"expression": "window.devicePixelRatio", "contextId": isolated_exec_id})
+            scale_factor_eval = await cdp_session.send(
+                "Runtime.evaluate",
+                {
+                    "expression": "window.devicePixelRatio",
+                    "contextId": isolated_exec_id,
+                },
+            )
             scale_factor: int = scale_factor_eval["result"]["value"]
             break
-        except AsyncError as e:
-            if e.message == "Protocol error (Runtime.evaluate): Cannot find context with specified id":
+        except (AsyncError, PAsyncError) as e:
+            if (
+                e.message
+                == "Protocol error (Runtime.evaluate): Cannot find context with specified id"
+            ):
                 pass
             else:
                 raise e
     else:
         raise TimeoutError("Runtime.evaluate did not run properly within 30 seconds.")
 
-    with suppress(SyncError):
+    with suppress(AsyncError, PAsyncError):
         if close_page:
             await page.close()
 
-    with suppress(SyncError):
+    with suppress(AsyncError, PAsyncError):
         if close_context:
             await context.close()
 
@@ -321,7 +429,11 @@ def get_sync_scale_factor(browser: sync_browsers) -> int:
 async def get_async_scale_factor(browser: async_browsers) -> int:
     if isinstance(browser, DriverlessAsyncChrome):
         return await get_async_selenium_scale_factor(browser)
-    elif isinstance(browser, AsyncContext) or isinstance(browser, AsyncBrowser) or isinstance(browser, BotrightContext):
+    elif (
+        isinstance(browser, AsyncContext)
+        or isinstance(browser, AsyncBrowser)
+        or isinstance(browser, BotrightContext)
+    ):
         return await get_async_playwright_scale_factor(browser)
 
     raise ValueError("Invalid browser type.")

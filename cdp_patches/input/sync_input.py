@@ -23,7 +23,12 @@ if is_windows:
 
     LinuxBase: TypeAlias = WindowsBase  # type: ignore[no-redef]
     InputBase = WindowsBase  # type: ignore
-    WindowErrors = (ValueError, ElementNotEnabled, ProcessNotFoundError, WindowClosedException)  # type: ignore[assignment]
+    WindowErrors = (
+        ValueError,
+        ElementNotEnabled,
+        ProcessNotFoundError,
+        WindowClosedException,
+    )  # type: ignore[assignment]
 else:
     from cdp_patches.input.os_base.linux import LinuxBase  # type: ignore[assignment]
 
@@ -31,7 +36,13 @@ else:
     InputBase = LinuxBase  # type: ignore
     WindowErrors = (AssertionError, ValueError, WindowClosedException)  # type: ignore[assignment]
 
-from .browsers import DriverlessSyncChrome, SeleniumChrome, get_sync_browser_pid, get_sync_scale_factor, sync_browsers
+from .browsers import (
+    DriverlessSyncChrome,
+    SeleniumChrome,
+    get_sync_browser_pid,
+    get_sync_scale_factor,
+    sync_browsers,
+)
 from .mouse_trajectory import HumanizeMouseTrajectory
 
 
@@ -49,10 +60,17 @@ class SyncInput:
     selective_modifiers_regex = re.compile(r"{[^{}]*}|.")
 
     def __init__(
-        self, pid: Optional[int] = None, browser: Optional[sync_browsers] = None, scale_factor: Optional[float] = 1.0, emulate_behaviour: Optional[bool] = True, window_timeout: Optional[float] = 30.0
+        self,
+        pid: Optional[int] = None,
+        browser: Optional[sync_browsers] = None,
+        scale_factor: Optional[float] = 1.0,
+        emulate_behaviour: Optional[bool] = True,
+        window_timeout: Optional[float] = 30.0,
     ) -> None:
         if platform.system() not in ("Windows", "Linux"):
-            raise SystemError("Unknown system (You´re probably using MacOS, which is currently not supported).")
+            raise SystemError(
+                "Unknown system (You´re probably using MacOS, which is currently not supported)."
+            )
 
         self._scale_factor = scale_factor or self._scale_factor
         self.window_timeout = window_timeout or self.window_timeout
@@ -71,7 +89,9 @@ class SyncInput:
         self._wait_for_window()
 
         # Include Windows Scale Factor for every browser except DriverlessSyncChrome
-        if is_windows and not isinstance(browser, (DriverlessSyncChrome, SeleniumChrome)):
+        if is_windows and not isinstance(
+            browser, (DriverlessSyncChrome, SeleniumChrome)
+        ):
             self._base.include_windows_scale_factor()
 
     @property
@@ -98,7 +118,9 @@ class SyncInput:
                 pass
             self._sleep_timeout(0.1)
 
-        raise TimeoutError(f"Chrome Window (PID: {self.pid}) not found in {self.window_timeout} seconds.")
+        raise TimeoutError(
+            f"Chrome Window (PID: {self.pid}) not found in {self.window_timeout} seconds."
+        )
 
     def _sleep_timeout(self, timeout: Optional[float] = None) -> None:
         timeout = timeout or self.sleep_timeout
@@ -113,18 +135,37 @@ class SyncInput:
         #     pass
 
     def click(
-        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "", emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = 0.07
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        pressed: str = "",
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = 0.07,
     ) -> None:
         x, y = int(x), int(y)
 
-        self.down(button=button, x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout, pressed=pressed)
+        self.down(
+            button=button,
+            x=x,
+            y=y,
+            emulate_behaviour=emulate_behaviour,
+            timeout=timeout,
+            pressed=pressed,
+        )
         if self.emulate_behaviour and emulate_behaviour:
             self._sleep_timeout(timeout=timeout)
         self.up(button=button, x=x, y=y, pressed=pressed)
         self.last_x, self.last_y = x, y
 
     def double_click(
-        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "", emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        pressed: str = "",
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = None,
     ) -> None:
         x, y = int(x), int(y)
 
@@ -134,32 +175,66 @@ class SyncInput:
             self._base.move(x=x, y=y)
 
         kwargs = _mk_kwargs(pressed)
-        self._base.double_click(button=button, x=x, y=y, press_timeout=press_timeout, click_timeout=click_timeout, **kwargs)
+        self._base.double_click(
+            button=button,
+            x=x,
+            y=y,
+            press_timeout=press_timeout,
+            click_timeout=click_timeout,
+            **kwargs,
+        )
         self.last_x, self.last_y = x, y
 
     def down(
-        self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "", emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        pressed: str = "",
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = None,
     ) -> None:
         x, y = int(x), int(y)
 
         if self.emulate_behaviour and emulate_behaviour:
-            self.move(x=x, y=y, emulate_behaviour=emulate_behaviour, timeout=timeout, pressed=pressed)
+            self.move(
+                x=x,
+                y=y,
+                emulate_behaviour=emulate_behaviour,
+                timeout=timeout,
+                pressed=pressed,
+            )
         self._base.down(button=button, x=x, y=y, **_mk_kwargs(pressed))
         self.last_x, self.last_y = x, y
 
-    def up(self, button: Literal["left", "right", "middle"], x: Union[int, float], y: Union[int, float], pressed: str = "") -> None:
+    def up(
+        self,
+        button: Literal["left", "right", "middle"],
+        x: Union[int, float],
+        y: Union[int, float],
+        pressed: str = "",
+    ) -> None:
         x, y = int(x), int(y)
 
         self._base.up(button=button, x=x, y=y, **_mk_kwargs(pressed))
         self.last_x, self.last_y = x, y
 
-    def move(self, x: Union[int, float], y: Union[int, float], pressed: str = "", emulate_behaviour: Optional[bool] = True, timeout: Optional[float] = None) -> None:
+    def move(
+        self,
+        x: Union[int, float],
+        y: Union[int, float],
+        pressed: str = "",
+        emulate_behaviour: Optional[bool] = True,
+        timeout: Optional[float] = None,
+    ) -> None:
         kwargs = _mk_kwargs(pressed)
         with self._move_lock:
             x, y = int(x), int(y)
 
             if self.emulate_behaviour and emulate_behaviour:
-                humanized_points = HumanizeMouseTrajectory((self.last_x, self.last_y), (x, y))
+                humanized_points = HumanizeMouseTrajectory(
+                    (self.last_x, self.last_y), (x, y)
+                )
 
                 # Move Mouse to new random locations
                 for i, (human_x, human_y) in enumerate(humanized_points.points):
@@ -169,10 +244,14 @@ class SyncInput:
             self._base.move(x=x, y=y, **kwargs)
             self.last_x, self.last_y = x, y
 
-    def scroll(self, direction: Literal["up", "down", "left", "right"], amount: int) -> None:
+    def scroll(
+        self, direction: Literal["up", "down", "left", "right"], amount: int
+    ) -> None:
         self._base.scroll(direction=direction, amount=amount)
 
-    def type(self, text: str, fill: Optional[bool] = False, timeout: Optional[float] = None) -> None:
+    def type(
+        self, text: str, fill: Optional[bool] = False, timeout: Optional[float] = None
+    ) -> None:
         if self.emulate_behaviour and not fill:
             for i, char in enumerate(self.selective_modifiers_regex.findall(text)):
                 # If new word is started wait some more time

@@ -14,7 +14,12 @@ def get_locator_pos(locator: WebElement):
     size = locator.size
     assert location, size
 
-    x, y, width, height = location.get("x"), location.get("y"), size.get("width"), size.get("height")
+    x, y, width, height = (
+        location.get("x"),
+        location.get("y"),
+        size.get("width"),
+        size.get("height"),
+    )
     assert x and y and width and height
 
     x, y = x + width // 2, y + height // 2
@@ -43,7 +48,9 @@ def test_input_leak(selenium_driver: Chrome, server: Server) -> None:
     selenium_driver.sync_input.click("left", x, y)  # type: ignore[attr-defined]
 
     time.sleep(2)
-    is_leaking = selenium_driver.execute_async_script("window.is_leaking.then(arguments[arguments.length - 1])")
+    is_leaking = selenium_driver.execute_async_script(
+        "window.is_leaking.then(arguments[arguments.length - 1])"
+    )
     assert not is_leaking
 
 
@@ -114,7 +121,10 @@ def test_locators_hover(selenium_driver: Chrome, server: Server) -> None:
     selenium_driver.sync_input.move(x, y)  # type: ignore[attr-defined]
 
     time.sleep(0.5)
-    assert selenium_driver.execute_script("return window.last_hover_elem.id") == "button-12"
+    assert (
+        selenium_driver.execute_script("return window.last_hover_elem.id")
+        == "button-12"
+    )
 
 
 def test_fill_input(selenium_driver: Chrome, server: Server) -> None:
@@ -145,7 +155,12 @@ def test_keyboard_type_into_a_textarea(selenium_driver: Chrome) -> None:
     selenium_driver.sync_input.click("left", x, y)  # type: ignore[attr-defined]
 
     selenium_driver.sync_input.type(text)  # type: ignore[attr-defined]
-    assert selenium_driver.execute_script('return document.querySelector("textarea").value') == text
+    assert (
+        selenium_driver.execute_script(
+            'return document.querySelector("textarea").value'
+        )
+        == text
+    )
 
 
 def test_quit_exception(selenium_driver: Chrome) -> None:
